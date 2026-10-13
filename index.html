@@ -1,0 +1,940 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moonwalk 2.0 · Report 03</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Report 03 keeps Report 02's palette and type. Layout: one dark column; three scroll-driven
+   stages (Moon → site, block → dome, elements → programmes) each pin a full-frame canvas or render. */
+:root{
+  --bg:#0B0F16; --surface:#131923; --ink:#E6E4DE; --muted:#A0A7B3; --faint:#6E7582; --line:#232A37;
+  --hot:#E88A6F; --blue:#7C9CF2; --sand:#D9B596;
+  --display:'Archivo','Arial Narrow',Arial,sans-serif;
+  --body:'IBM Plex Sans','Segoe UI',Arial,sans-serif;
+  --mono:'IBM Plex Mono','Courier New',monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font:300 17px/1.55 var(--body);overflow-x:hidden}
+img{max-width:100%}
+a{color:var(--blue)}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+.wrap{padding-inline:clamp(16px,4vw,48px);max-width:1280px;margin-inline:auto}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--hot)}
+.note{font:400 13px/1.5 var(--mono);color:var(--muted)}
+p{max-width:64ch}
+
+/* nav */
+.nav{position:fixed;left:0;right:0;top:0;padding:calc(10px + env(safe-area-inset-top,0px)) clamp(16px,4vw,48px) 10px;z-index:40;display:flex;gap:18px;align-items:center;flex-wrap:wrap;background:linear-gradient(var(--bg) 0%,rgba(11,15,22,0) 100%);font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.nav b{color:var(--ink);font-weight:600;margin-right:auto}
+.nav a{color:var(--muted);text-decoration:none}
+.nav a:hover,.nav a.on{color:var(--ink)}
+@media (max-width:700px){.nav a:not(.keep){display:none}}
+
+
+/* ---------- hero (Report 02 story) ---------- */
+.story{position:relative}
+.stage0{position:sticky; top:0; height:100vh; height:100svh; overflow:hidden}
+.story #moon{position:absolute; inset:0; width:100%; height:100%; display:block}
+.vignette{position:absolute; inset:0; background:linear-gradient(90deg, rgba(11,15,22,.7) 0%, rgba(11,15,22,.3) 36%, rgba(11,15,22,0) 58%); pointer-events:none}
+.steps0{position:relative; z-index:2; margin-top:-100vh; margin-top:-100svh; pointer-events:none}
+.step{min-height:110vh; display:flex; align-items:center}
+.step:first-child{min-height:100vh; align-items:flex-start; padding-top:clamp(96px,16vh,170px)}
+.step:last-child{min-height:110vh}
+.step{min-height:95vh}
+.step:last-child .card{transition:opacity .3s}
+.card{pointer-events:auto; max-width:440px; text-shadow:0 1px 2px rgba(0,0,0,.95),0 0 18px rgba(0,0,0,.85),0 0 42px rgba(0,0,0,.6); display:flex; flex-direction:column; gap:12px}
+.card h2{font-size:clamp(28px,3.6vw,44px);line-height:1.05;font-weight:700}
+.card p{font-size:17px}
+.title{pointer-events:auto; display:flex; flex-direction:column; gap:22px; max-width:760px; text-shadow:0 0 30px rgba(0,0,0,.7)}
+.title .eyebrow{color:var(--hot)}
+.title .lablogo{display:block; width:clamp(150px,16vw,210px); height:auto; margin-bottom:-6px; filter:drop-shadow(0 0 18px rgba(0,0,0,.6))}
+.title h1{font-size:clamp(54px,10vw,140px); font-weight:800; font-stretch:125%; line-height:.88; letter-spacing:-.01em}
+.title h1 span{display:block; font-size:.42em; font-stretch:110%; color:var(--hot); letter-spacing:.02em; margin-bottom:.25em}
+.title .lede{max-width:36ch; font-size:clamp(18px,2vw,22px); line-height:1.45}
+.title .cue{font:500 12px var(--mono); letter-spacing:.16em; color:var(--muted); margin-top:8px}
+.pin0{position:absolute; left:0; top:0; pointer-events:none; font:500 12px/1.35 var(--mono); color:var(--ink); white-space:nowrap; opacity:0; transition:opacity .35s; will-change:transform; z-index:2}
+.pin0 i{position:absolute; left:-5px; top:-5px; width:10px; height:10px; border:1.5px solid var(--hot); border-radius:50%}
+.pin0 span{position:absolute; left:14px; top:-9px; padding:2px 6px; background:rgba(11,15,22,.72)}
+.pin0 span em{font-style:normal; color:var(--hot); letter-spacing:.1em; text-transform:uppercase; display:block; font-size:10px}
+.pin0.psr i{border-color:#7C9CF2} .pin0.psr span em{color:#9fb4ff}
+.pin0.base i{width:14px; height:14px; left:-7px; top:-7px; background:var(--hot); box-shadow:0 0 0 6px rgba(232,138,111,.25)}
+.rail{position:absolute; right:clamp(12px,3vw,32px); top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:14px; z-index:3}
+.rail button{all:unset; cursor:pointer; display:flex; align-items:center; gap:10px; justify-content:flex-end; font:500 11px var(--mono); letter-spacing:.1em; color:var(--muted); text-transform:uppercase}
+.rail button span{opacity:0; transition:opacity .2s}
+.rail button:hover span,.rail button.on span{opacity:1}
+.rail button::after{content:""; width:8px; height:8px; border-radius:50%; border:1.5px solid var(--muted)}
+.rail button.on{color:var(--ink)} .rail button.on::after{background:var(--hot); border-color:var(--hot)}
+@media (max-width:640px){.rail{display:none}}
+.dive{position:absolute;inset:0;opacity:0;pointer-events:none;z-index:1;overflow:hidden}
+.dive img{width:100%;height:100%;object-fit:cover;display:block;transform-origin:62% 58%;will-change:transform}
+#dive2{z-index:2} #dive2 img{transform-origin:58% 53%}
+.legend{display:flex;align-items:center;gap:10px;font:400 11px var(--mono);color:var(--muted);margin-top:4px}
+.legend i{display:block;width:160px;height:8px;border:1px solid var(--line)}
+.coords{position:absolute; left:clamp(16px,4vw,40px); bottom:24px; font:400 12px var(--mono); color:var(--muted); letter-spacing:.06em; z-index:3}
+#basePin{z-index:3}
+#basePin i{width:11px;height:11px;left:-5.5px;top:-5.5px;border:none;border-radius:50%;background:var(--hot);box-shadow:0 0 0 4px rgba(232,138,111,.18),0 0 16px rgba(232,138,111,.9)}
+@media (prefers-reduced-motion:no-preference){#basePin i::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:1.5px solid rgba(232,138,111,.55);animation:bpulse 2.6s ease-out infinite}}
+@keyframes bpulse{0%{transform:scale(.55);opacity:.9}70%{transform:scale(1.9);opacity:0}100%{transform:scale(1.9);opacity:0}}
+#basePin::before{content:"";position:absolute;left:7px;top:-0.5px;width:24px;height:1px;background:linear-gradient(90deg,rgba(232,138,111,.9),rgba(196,210,235,.25))}
+#basePin span{left:31px;top:-18px;padding:8px 14px;border-radius:12px;background:linear-gradient(165deg,rgba(52,62,82,.5),rgba(16,20,30,.66));border:1px solid rgba(196,210,235,.2);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);box-shadow:0 12px 26px rgba(0,0,0,.42),0 2px 6px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(0,0,0,.4)}
+#basePin span em{margin-bottom:2px}
+.secstrip{position:absolute;right:clamp(16px,4vw,48px);bottom:20px;width:min(620px,calc(100% - 540px));height:178px;z-index:3;opacity:0;pointer-events:none;
+  background:linear-gradient(168deg,rgba(44,53,72,.66),rgba(20,25,36,.78) 48%,rgba(12,16,24,.84));
+  border:1px solid rgba(196,210,235,.16);border-radius:20px;
+  box-shadow:0 22px 44px rgba(0,0,0,.5),0 3px 10px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -1px 0 rgba(0,0,0,.55),inset 0 0 46px rgba(124,156,242,.06);
+  backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3)}
+.secstrip::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(130% 95% at 16% -12%,rgba(255,255,255,.09),transparent 52%),radial-gradient(90% 70% at 86% 118%,rgba(124,156,242,.07),transparent 60%)}
+.secstrip::after{content:"";position:absolute;left:22px;right:22px;top:36px;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(196,210,235,.22) 12%,rgba(196,210,235,.22) 88%,transparent)}
+.secstrip .sp{position:absolute;inset:9px 20px 7px;opacity:0;transition:opacity .25s}
+.secstrip svg{width:100%;height:100%;display:block}
+.secstrip text{font:400 10px var(--mono)}
+.secstrip .tt{font:500 10px var(--mono);letter-spacing:.1em}
+@media (max-width:1020px),(max-height:620px){.secstrip{display:none}}
+.btn{display:inline-block;font:500 13px var(--mono);padding:9px 14px;border:1px solid var(--ink);color:var(--ink);text-decoration:none}
+.btn:hover{background:var(--ink);color:var(--bg)}
+/* hero (old, unused) */
+.hero{min-height:100svh;display:grid;align-items:end;padding-block:120px clamp(32px,8vh,72px);position:relative}
+.hero .logo{position:absolute;top:calc(64px + env(safe-area-inset-top,0px));left:clamp(16px,4vw,48px);height:38px;opacity:.9}
+.hero h1{font-size:clamp(44px,9vw,120px);line-height:.92;font-weight:700;letter-spacing:-.015em;margin-bottom:.25em}
+.hero .sub{font-size:clamp(18px,2vw,24px);color:var(--muted);max-width:50ch;margin-bottom:28px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px 24px;font:400 12px var(--mono);color:var(--faint)}
+.cue{margin-top:36px;font:500 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+/* stages: a tall section with a sticky full-height frame */
+.stage{position:relative}
+.stage .pin{position:sticky;top:0;height:100svh;overflow:hidden;background:#000;display:grid;grid-template-rows:1fr auto}
+.stage .vis{position:relative;min-height:0}
+.stage.img .pin{display:block}
+.stage.img .vis{position:absolute;inset:0}
+.stage.img .cap{position:absolute;left:0;right:0;bottom:0;border-top:0;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.9) 45%);padding-top:56px;grid-template-columns:1fr;gap:4px;max-width:none}
+.stage.img .cap h2{max-width:26ch}
+.stage.img .cap p{max-width:70ch;color:var(--ink);text-shadow:0 1px 10px rgba(0,0,0,.7)}
+.stage canvas.gl,.stage .layer{position:absolute;inset:0;width:100%;height:100%}
+.stage .layer img{width:100%;height:100%;object-fit:contain;display:block;background:#000}
+.stage .layer .grid{position:absolute;inset:0;display:grid;gap:8px;padding:calc(48px + env(safe-area-inset-top,0px)) clamp(16px,4vw,48px) 150px}
+.stage .layer .g2{grid-template-columns:1fr 1fr}
+.stage .layer .g3{grid-template-columns:1fr 1fr 1fr}
+.stage .layer .grid img{width:100%;height:100%;object-fit:contain;min-height:0;background:#000}
+@media (max-width:700px){.stage .layer .g2,.stage .layer .g3{grid-template-columns:1fr;grid-auto-rows:1fr}}
+.stage .layer{opacity:0;transition:opacity .5s}
+.stage .layer.on{opacity:1}
+.cap{position:relative;padding:14px clamp(16px,4vw,48px) calc(22px + env(safe-area-inset-bottom,0px));max-width:none;display:grid;grid-template-columns:auto 1fr;gap:6px 32px;align-items:baseline;border-top:1px solid var(--line);background:var(--bg)}
+.cap .eyebrow{grid-column:1/-1}
+.cap h2{max-width:22ch}
+.cap p{max-width:62ch}
+@media (max-width:800px){.cap{grid-template-columns:1fr}}
+.cap h2{font-size:clamp(22px,2.6vw,34px);line-height:1.05;font-weight:700;letter-spacing:-.01em;margin:.1em 0 0}
+.cap p{font-size:clamp(14px,1.15vw,16px);margin:0;color:var(--muted)}
+.cap .facts{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:12px;font:400 12px var(--mono);color:var(--muted)}
+.cap .facts b{color:var(--ink);font-weight:500}
+.cap .btn{pointer-events:auto;display:inline-block;margin-top:14px;font:500 13px var(--mono);padding:9px 14px;border:1px solid var(--ink);color:var(--ink);text-decoration:none}
+.cap .btn:hover{background:var(--ink);color:var(--bg)}
+.shade{display:none}
+.meter{position:absolute;left:clamp(16px,4vw,48px);top:calc(56px + env(safe-area-inset-top,0px));z-index:3;width:140px;height:2px;background:var(--line)}
+.meter i{display:block;height:100%;width:0;background:var(--hot)}
+.steps{position:absolute;right:clamp(16px,4vw,48px);top:calc(56px + env(safe-area-inset-top,0px));z-index:3;display:flex;flex-direction:column;gap:8px;font:400 12px var(--mono);color:var(--faint);text-align:right}
+.steps span.on{color:var(--ink)}
+.steps span:hover{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.steps span.done{color:var(--muted)}
+@media (max-width:700px){.steps{display:none}}
+
+/* control panel for the block stage */
+.stage.light .pin{background:#efede8}
+.stage.light .cap{background:#000;color:var(--ink);border-top-color:#1a1a1a}
+.stage.light .cap p{color:var(--muted)}
+.stage.light .steps span{color:#8a8f98}.stage.light .steps span.on{color:#1b1e24}
+.stage.light .meter{background:#d6d2c9}
+.stage.light .panel{background:rgba(255,255,255,.82);border-color:#d6d2c9;color:#1b1e24}
+.stage.light .panel .slider,.stage.light .panel .stat{color:#5a606a}
+.stage.light .panel .slider output,.stage.light .panel .stat b,.stage.light .panel h3{color:#1b1e24}
+.stage.light .panel button{border-color:#c9c5bc;color:#1b1e24}
+.stage.light .panel button[aria-pressed=true]{background:#1b1e24;color:#fff;border-color:#1b1e24}
+.panel{position:absolute;right:clamp(16px,4vw,48px);bottom:16px;width:min(320px,calc(100% - 32px));background:var(--surface);border:1px solid var(--line);padding:14px 16px;backdrop-filter:blur(6px);z-index:5}
+.panel h3{font-size:14px;font-weight:600;margin-bottom:8px}
+.panel .slider{display:grid;grid-template-columns:92px 1fr 56px;gap:8px;align-items:center;font:400 12px var(--mono);color:var(--muted);margin-top:6px}
+.panel .slider output{color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.panel input[type=range]{width:100%;accent-color:var(--hot)}
+.panel .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.panel .zoom{display:flex;gap:4px;margin-left:auto}.panel .zoom button{min-width:30px;padding:6px 8px}
+.panel button{font:500 12px var(--mono);padding:6px 10px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.panel button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.panel .stat{font:400 12px var(--mono);color:var(--muted);margin-top:8px;line-height:1.5}
+.panel .stat b{color:var(--ink);font-weight:500}
+@media (max-width:700px){.panel{bottom:auto;top:calc(76px + env(safe-area-inset-top,0px));width:min(260px,calc(100% - 32px));padding:10px 12px}.panel .slider{grid-template-columns:70px 1fr 44px}.cap{max-width:100%}}
+
+
+.ee{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);background:var(--surface);border:1px solid var(--line)}
+.eeview{position:relative;height:560px;background:#0e1219}
+.eeview canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.eetag,.eestep{position:absolute;top:14px;font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.eetag{left:16px;color:var(--ink)} .eestep{right:16px;color:var(--hot)}
+.eehint{position:absolute;left:16px;right:96px;bottom:12px;font:400 12px var(--mono);color:var(--faint)}
+.eezoom{position:absolute;right:12px;bottom:10px;display:flex;gap:4px}.eezoom button{font:500 13px var(--mono);min-width:32px;padding:5px 8px;border:1px solid var(--line);background:rgba(11,15,22,.6);color:var(--ink);cursor:pointer}.eezoom button:hover{border-color:var(--muted)}
+.eeside{display:flex;flex-direction:column;max-height:560px}
+.eeopts{overflow:auto}
+.eeopts{flex:1}
+.eeopt{padding:12px 18px;border-bottom:1px solid var(--line);cursor:pointer}
+.eeopt:hover{background:rgba(255,255,255,.03)} .eeopt.on{background:#1a2130}
+.eeopt .k{font:500 12px var(--mono);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.eeopt h3{font-size:18px;font-weight:700;margin-bottom:6px}
+.eeopt p{font-size:13px;color:var(--muted);margin:0;display:none}
+.eeopt.on p{display:block}
+.eeopt .kv{display:none;grid-template-columns:1fr 1fr;gap:6px 18px;margin-top:10px;font:400 12.5px var(--mono);color:var(--muted)}
+.eeopt .kv b{color:var(--ink);font-weight:500}
+.eeopt.on .kv{display:grid}
+.eectl{padding:16px 20px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button,.eeplay{font:500 13px var(--mono);padding:8px 12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.eeplay{align-self:flex-start}
+@media (max-width:900px){.ee{grid-template-columns:1fr}.eeview{min-height:360px}}
+
+.pg{position:relative;padding-top:52px}
+.pgi{position:absolute;left:0;top:0;width:40px;height:40px;color:var(--hot)}
+.pgi svg{width:40px;height:40px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+/* text sections */
+.sec{padding-block:clamp(48px,10vh,120px)}
+.sec .head{display:grid;grid-template-columns:1fr 2fr;gap:24px 48px;align-items:end;margin-bottom:32px}
+.sec h2{font-size:clamp(28px,4vw,48px);line-height:1.05;font-weight:700}
+.sec .lead{font-size:clamp(17px,1.5vw,21px);color:var(--muted)}
+@media (max-width:800px){.sec .head{grid-template-columns:1fr}}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px 32px}
+.grid3 b{font-family:var(--display);font-size:17px;font-weight:700;display:block;margin-bottom:6px}
+.grid3 p{font-size:15px;color:var(--muted);margin:0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td:first-child{font-family:var(--mono);font-size:13px;color:var(--hot);white-space:nowrap}
+.tw{overflow-x:auto}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font:400 13px var(--mono);font-variant-numeric:tabular-nums}
+.kv b{font-weight:500;color:var(--ink)}
+.kv span{color:var(--muted)}
+.quote{font-family:var(--display);font-weight:400;font-size:clamp(20px,2.4vw,30px);line-height:1.25;border-left:2px solid var(--hot);padding-left:18px;margin:0 0 10px;max-width:40ch}
+footer{padding-block:28px 48px;border-top:1px solid var(--line);font:400 12px var(--mono);color:var(--faint)}
+footer a{color:var(--muted)}
+
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .stage .layer{transition:none} }
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Sections">
+  <b>MOONWALK 2.0 · REPORT 03</b>
+  <a href="#story" class="keep">Site</a>
+  <a href="#block">Block → dome</a>
+  <a href="#gripper">Gripper</a>
+  <a href="#habitat">Habitats</a>
+  <a href="#interior">Inside</a>
+  <a href="#power">Power</a>
+  <a href="#hybrid">Fluid shells</a>
+  <a href="#fluidin">Inside them</a>
+  <a href="#circadian">Light</a>
+  <a href="https://arhimatrix.github.io/arhimatrix-moonwalk-2-rep_02/" class="keep">← Report 02</a>
+</nav>
+
+
+<div class="story" id="story">
+<div class="stage0">
+<canvas id="moon" aria-label="3D Moon: it turns to the south pole and zooms in through the craters and shadowed floors to the base site on the connecting ridge"></canvas>
+<div class="vignette"></div>
+<nav class="rail" id="rail" aria-label="Site tour"></nav>
+<p class="coords" id="coords">NEAR SIDE</p>
+<div class="pin0 base" id="basePin" style="opacity:0"><i></i><span><em>Base site</em>Connecting Ridge</span></div>
+<div class="secstrip" id="secstrip" aria-hidden="true"><div class="sp"><svg viewBox="0 0 620 152" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><text class="tt" x="0" y="11" fill="#6E7582">SECTION · DE GERLACHE → CONNECTING RIDGE → SHACKLETON · ≈ 25 KM · SCHEMATIC</text><text class="tt" x="620" y="11" fill="#E9C46A" text-anchor="end">ELEVATION</text><path d="M0,93 L52,93 L112,43 L150,49 L248,40 L325,48 L412,30 L448,100 L580,100 L612,61 L620,150 L0,150 Z" fill="rgba(110,117,130,.07)"/><path d="M0,93 L52,93 L112,43 L150,49 L248,40 L325,48 L412,30 L448,100 L580,100 L612,61" fill="none" stroke="#6E7582" stroke-width="1.5" stroke-linejoin="round"/><line x1="0" y1="52" x2="620" y2="52" stroke="#3a4150" stroke-dasharray="4 4"/><text x="618" y="49" fill="#6E7582" text-anchor="end">0 m</text><circle cx="248" cy="40" r="3" fill="#E88A6F"/><circle cx="248" cy="40" r="7" fill="none" stroke="#E88A6F" stroke-opacity=".5"/><text x="248" y="27" fill="#E88A6F" text-anchor="middle">Connecting Ridge · base site</text><text x="412" y="22" fill="#E6E4DE" text-anchor="middle">Shackleton rim ≈ +1.3 km</text><line x1="505" y1="30" x2="505" y2="100" stroke="#3a4150" stroke-dasharray="3 3"/><line x1="500" y1="30" x2="510" y2="30" stroke="#3a4150"/><line x1="500" y1="100" x2="510" y2="100" stroke="#3a4150"/><text x="511" y="68" fill="#A0A7B3">4.1 km deep</text><text x="514" y="112" fill="#7C9CF2" text-anchor="middle">floor ≈ 2.8 km below the 0 line</text><text x="4" y="88" fill="#A0A7B3">de Gerlache floor ≈ −2.5 km</text><text x="0" y="148" fill="#A0A7B3">blue = low, pale = high · LOLA = Lunar Orbiter Laser Altimeter (heights: Zuber et al. 2012)</text></svg></div><div class="sp"><svg viewBox="0 0 620 152" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><text class="tt" x="0" y="11" fill="#6E7582">SECTION · DE GERLACHE → CONNECTING RIDGE → SHACKLETON · ≈ 25 KM · SCHEMATIC</text><text class="tt" x="620" y="11" fill="#FFE08A" text-anchor="end">ILLUMINATION</text><path d="M0,93 L52,93 L112,43 L150,49 L248,40 L325,48 L412,30 L448,100 L580,100 L612,61 L620,150 L0,150 Z" fill="rgba(110,117,130,.07)"/><path d="M0,93 L52,93 L112,43 L150,49 L248,40 L325,48 L412,30 L448,100 L580,100 L612,61" fill="none" stroke="#6E7582" stroke-width="1.5" stroke-linejoin="round"/><line x1="8" y1="20" x2="118" y2="26" stroke="#E9C46A" stroke-opacity=".55"/><path d="M118,26 l-7,-3 l1,6 z" fill="#E9C46A" fill-opacity=".55"/><line x1="8" y1="32" x2="118" y2="38" stroke="#E9C46A" stroke-opacity=".55"/><path d="M118,38 l-7,-3 l1,6 z" fill="#E9C46A" fill-opacity=".55"/><line x1="8" y1="44" x2="118" y2="50" stroke="#E9C46A" stroke-opacity=".55"/><path d="M118,50 l-7,-3 l1,6 z" fill="#E9C46A" fill-opacity=".55"/><text x="8" y="64" fill="#E9C46A">Sun skims the horizon, ≤ 2° high</text><path d="M96,46 L112,43 L132,45" fill="none" stroke="#FFE08A" stroke-width="3"/><path d="M226,42 L248,40 L272,42" fill="none" stroke="#FFE08A" stroke-width="3"/><path d="M394,33 L412,30 L432,34" fill="none" stroke="#FFE08A" stroke-width="3"/><path d="M0,93 L52,93" stroke="#4a3f8f" stroke-width="4" fill="none"/><path d="M448,100 L580,100" stroke="#4a3f8f" stroke-width="4" fill="none"/><circle cx="248" cy="40" r="3" fill="#E88A6F"/><circle cx="248" cy="40" r="7" fill="none" stroke="#E88A6F" stroke-opacity=".5"/><text x="248" y="27" fill="#FFE08A" text-anchor="middle">crest lit 80–90 % of the year</text><text x="514" y="112" fill="#b39ddb" text-anchor="middle">floors 0 % · permanent shadow</text><text x="0" y="148" fill="#A0A7B3">best ridge points: 92 % lit at 2 m, 96 % at 10 m · longest night 3–5 days (Gläser et al.)</text></svg></div><div class="sp"><svg viewBox="0 0 620 152" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><text class="tt" x="0" y="11" fill="#6E7582">SECTION · DE GERLACHE → CONNECTING RIDGE → SHACKLETON · ≈ 25 KM · SCHEMATIC</text><text class="tt" x="620" y="11" fill="#4fc3f7" text-anchor="end">TEMPERATURE</text><path d="M0,93 L52,93 L112,43 L150,49 L248,40 L325,48 L412,30 L448,100 L580,100 L612,61 L620,150 L0,150 Z" fill="rgba(110,117,130,.07)"/><path d="M0,93 L52,93 L112,43 L150,49 L248,40 L325,48 L412,30 L448,100 L580,100 L612,61" fill="none" stroke="#6E7582" stroke-width="1.5" stroke-linejoin="round"/><path d="M0,93 L52,93" stroke="#4fc3f7" stroke-width="4" fill="none"/><path d="M448,100 L580,100" stroke="#4fc3f7" stroke-width="4" fill="none"/><path d="M226,42 L248,40 L272,42" fill="none" stroke="#E88A6F" stroke-width="3"/><path d="M394,33 L412,30 L432,34" fill="none" stroke="#E88A6F" stroke-width="3"/><circle cx="248" cy="40" r="3" fill="#E88A6F"/><circle cx="248" cy="40" r="7" fill="none" stroke="#E88A6F" stroke-opacity=".5"/><text x="248" y="27" fill="#E6E4DE" text-anchor="middle">base site · ice ≈ 5 km away</text><text x="412" y="22" fill="#E88A6F" text-anchor="middle">sunlit rim ≈ 220 K</text><text x="514" y="112" fill="#4fc3f7" text-anchor="middle">floor ≈ 90 K · holds water ice</text><text x="4" y="88" fill="#4fc3f7">de Gerlache floor · cold trap &lt; 110 K</text><text x="0" y="148" fill="#A0A7B3">power in the light, ice in the dark · the coldest measured places in the Solar System (Diviner)</text></svg></div></div>
+</div>
+<div class="steps0" id="steps">
+<div class="step" data-label="Report 03"><div class="wrap" style="width:100%"><div class="title">
+<img class="lablogo" src="img/srl_logo.png" width="412" height="174" alt="The Space Robotics Lab">
+<p class="eyebrow">Space Robotics Lab · Tohoku University · Report 03</p>
+<h1><span>Moonwalk 2.0</span>From one block to a settlement</h1>
+<p class="lede">Report 02 took the site to the pavement. This report takes the pavement to the structures: the block grows into wall, column and dome, then the elements grow into power, habitats and fluid shells for the programmes of a settlement, all from the same hexagonal unit.</p>
+<p class="cue">▼ SCROLL TO THE SITE</p>
+</div></div></div>
+<div class="step" data-label="South pole"><div class="wrap" style="width:100%"><div class="card">
+<p class="eyebrow">01 · Orientation</p><h2>Turning to the south pole</h2>
+<p>The Moon’s axis is tilted only about 1.5°. At the pole the Sun never climbs more than a few degrees: light arrives sideways, high ground can stay lit for most of the year, and low ground can stay dark for ever.</p>
+</div></div></div>
+<div class="step" data-label="The site"><div class="wrap" style="width:100%"><div class="card">
+<p class="eyebrow">01 · The site</p><h2>Connecting Ridge</h2>
+<p>Within 150 km of the pole the crater rims catch the low Sun while their floors never see it. Report 02 scored four NASA candidate regions; the structures in this report are drawn on Connecting Ridge, between Shackleton and de Gerlache: long sunlit periods, a shadowed floor within reach, and a shoulder flat enough for the pad.</p>
+<p><a class="btn" href="https://jsmars.sounny.com/?body=moon&lat=-89.46&lon=-99&z=4&layers=moon_opm_basemap%3A1%3A1" target="_blank" rel="noopener">Open the region in JSMARS ↗</a></p>
+</div></div></div>
+<div class="step" data-label="Elevation"><div class="wrap" style="width:100%"><div class="card">
+<p class="eyebrow">01 · Site data · elevation</p><h2>LOLA polar elevation</h2>
+<p>LOLA is the laser altimeter on NASA’s Lunar Reconnaissance Orbiter: it measured the height of the ground, and this layer is that height as colour. Blue is low — the crater floors — and pale is high — the rims. The base site sits on Connecting Ridge, the high crest between Shackleton and de Gerlache, because at the pole height is what buys sunlight. Schematic relief here; the report version uses the LOLA 5 m polar DEM through JSMARS.</p>
+<div class="legend"><i style="background:linear-gradient(90deg,#1b2a6b,#2a9d8f,#e9c46a,#f4f1ea)"></i><span>low</span><span>high</span></div>
+</div></div></div>
+<div class="step" data-label="Illumination"><div class="wrap" style="width:100%"><div class="card">
+<p class="eyebrow">01 · Site data · light</p><h2>Illumination, percent of the year</h2>
+<p>High ground near the pole stays lit most of the year; the best points on the Shackleton–de Gerlache crest — where the base site sits — exceed 80 %, and the longest nights there last only 3–5 days. Schematic from the basemap here; the report layer is the Mazarico average-illumination map.</p>
+<div class="legend"><i style="background:linear-gradient(90deg,#120a2a,#6a1b9a,#e65100,#fff176)"></i><span>0 %</span><span>&gt; 80 %</span></div>
+</div></div></div>
+<div class="step" data-label="Cold traps"><div class="wrap" style="width:100%"><div class="card">
+<p class="eyebrow">01 · Site data · cold</p><h2>Diviner cold traps</h2>
+<p>Crater floors that never see the Sun stay below 110 K — cold enough to keep water ice for billions of years. The blue marks these cold traps; Shackleton’s floor, at about 90 K, is the one next door. The base site on Connecting Ridge stays up on the warm, sunlit rim beside it, close enough to haul ice from. Schematic here; the report layer is the Diviner maximum-temperature map.</p>
+<div class="legend"><i style="background:linear-gradient(90deg,#4fc3f7,#0d47a1,#0b0f16)"></i><span>&lt; 110 K</span><span>warm</span></div>
+</div></div></div>
+</div>
+</div>
+
+
+<!-- ============ STAGE 2: BLOCK → DOME (interactive) ============ -->
+<section class="stage" id="block" data-stage="block" style="height:560vh">
+  <div class="pin">
+<div class="vis">
+    <canvas class="gl" id="blockGl" aria-label="Interactive 3D: one hexagonal block, then the pavement, a wall, a column and a dome, all from the same block"></canvas>
+    <div class="shade" style="background:linear-gradient(180deg,rgba(11,15,22,.2),rgba(11,15,22,0) 25%,rgba(11,15,22,0) 60%,rgba(11,15,22,.85) 100%)"></div>
+    <div class="meter"><i></i></div>
+    <div class="steps" id="blockSteps"><span>Block</span><span>Pavement</span><span>Wall</span><span>Column</span><span>Dome</span></div>
+    <div class="panel" id="panel">
+      <h3 id="pnTitle">The block</h3>
+      <div class="slider"><label for="sTilt">Side tilt</label><input type="range" id="sTilt" min="0" max="35.26" step="0.1" value="0"><output id="oTilt">0°</output></div>
+      <div class="slider"><label for="sT">Thickness</label><input type="range" id="sT" min="50" max="200" step="1" value="100"><output id="oT">100 mm</output></div>
+      <div class="slider" id="rowN"><label for="sN" id="lN">Rings</label><input type="range" id="sN" min="1" max="10" step="1" value="5"><output id="oN">5</output></div>
+      <div class="slider" id="rowM"><label for="sM" id="lM">Graded</label><input type="range" id="sM" min="0" max="6" step="1" value="3"><output id="oM">3</output></div>
+      <div class="row"><button type="button" id="bSpin" aria-pressed="true">Auto-orbit</button><button type="button" id="bEdges" aria-pressed="true">Edges</button><span class="zoom"><button type="button" id="bZout" aria-label="Zoom out">−</button><button type="button" id="bZin" aria-label="Zoom in">+</button><button type="button" id="bZfit">Fit</button></span></div>
+      <div class="stat" id="pnStat"></div><div class="stat" style="margin-top:4px">Drag to orbit · + / − or pinch to zoom</div>
+    </div>
+    </div>
+<div class="cap">
+      <div class="eyebrow" id="blkEyebrow">02 · The block</div>
+      <h2 id="blkH">One hexagon. One number.</h2>
+      <p id="blkP">Six side faces lean alternately in and out. At 0° the block is a plain prism; at 35.3° its faces are those of a cube on its corner. The tilt is the only thing that changes, and it is what makes the blocks lock.</p>
+    </div></div>
+</section>
+
+<!-- ============ END-EFFECTOR ============ -->
+<section class="sec wrap" id="gripper">
+  <div class="head">
+    <div><div class="eyebrow">02 · Robot interface</div><h2>How the robot holds the block</h2></div>
+    <p class="lead">Report 01 compared end-effectors on the osteomorphic block. The hexagonal tilt block changes the problem: every block has the same flat top, and the tilted side faces alternate, so the top is a truncated triangle with three short edges. Five ways to grip it, on the same blocks, the same four steps: Report 01’s twist-key and flush side handle carried over, and three that use the new geometry.</p>
+  </div>
+  <div class="ee">
+    <div class="eeview"><canvas id="eeGl" aria-label="3D: an end-effector approaching, engaging, actuating and lifting a hexagonal tilt block from a row of three"></canvas>
+      <div class="eetag" id="eeTag">OPTION 1 · TOP TWIST-LOCK</div><div class="eestep" id="eeStep">1 · APPROACH</div>
+      <div class="eehint">Drag to orbit · + / − or pinch to zoom · three blocks at 17.6° tilt, the middle one is picked · in option 1 it is shown translucent to reveal the cavity</div><div class="eezoom"><button type="button" id="eeZout" aria-label="Zoom out">−</button><button type="button" id="eeZin" aria-label="Zoom in">+</button></div></div>
+    <div class="eeside">
+      <div class="eeopts" id="eeOpts"></div>
+      <div class="eectl"><div class="seg" id="eeSteps"><button type="button" data-k="0" aria-pressed="true">1 Approach</button><button type="button" data-k="1">2 Engage</button><button type="button" data-k="2">3 Actuate</button><button type="button" data-k="3">4 Lift</button></div><button type="button" class="eeplay" id="eePlay">▶ Play</button></div>
+    </div>
+  </div>
+  <div class="grid3" style="margin-top:32px">
+    <div><b>Why the top face wins</b><p>Every block in the family shares the flat top, so one top-gripping effector serves pavement, wall, column and shell. Side faces change tilt from ring to ring; a side jaw would need five settings.</p></div>
+    <div><b>Why the pockets help</b><p>Three shallow triangular seats printed at the short top edges, 26 mm deep, with 20 mm of material left to the face. They are the same on all five tilts, so one three-finger hand picks every block in the family.</p></div>
+    <div><b>What stays lab-compatible</b><p>Option 2 runs on the lab's C-jaw as it is and needs one free side face. The other four grip from above, so one wrist serves pavement, wall, column and shell; the twist-key slot and the finger pockets are printed into the top, the same on every tilt.</p></div>
+  </div>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+<!-- ============ STAGE: HABITAT ============ -->
+<section class="stage seq img" id="habitat" style="height:620vh">
+  <div class="pin">
+<div class="vis">
+    <div class="layer on"><img src="img/hab1.jpg" alt=""></div>
+<div class="layer"><img src="img/hab2.jpg" alt=""></div>
+<div class="layer"><img src="img/hab3.jpg" alt=""></div>
+<div class="layer"><img src="img/hab4.jpg" alt=""></div>
+<div class="layer"><img src="img/hab5.jpg" alt=""></div>
+    <div class="meter"><i></i></div>
+    <div class="steps"><span>Two</span><span>Three</span><span>Five</span><span>Buried</span><span>Ring</span></div>
+</div>
+    <div class="cap" data-caps='[["03 · Habitats", "Habitats grow out of the pavement.", "The shell is the pavement bent into a cap: a levelled seat in the paving becomes the floor of a dome, and the same block closes it over. Two domes and a tunnel are the first habitable unit."], ["03 · Habitats", "Three in a line.", "Elements dock in a chain, the way NASA plans Multi-Purpose Habitat, Node and Airlock. Each port is the 2.0 m ring planned for surface mating; logistics ports are rated for 60 dockings over ten years, crew ports for three."], ["03 · Habitats", "One, then five.", "A central dome and four satellites on short tunnels: the smallest modular cluster, on its own paved pad."], ["03 · Habitats", "Under the regolith.", "Berms of loose regolith over the shells add the shielding mass. From outside only the ports and the paved aprons show."], ["03 · Habitats", "The ring.", "Clusters join into rings and the base grows one ring at a time. Every port gets a flat apron; corridors stay below 20° for vehicles."]]'>
+      <div class="eyebrow"></div><h2></h2><p></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STAGE: INTERIOR ============ -->
+<section class="stage seq img" id="interior" style="height:620vh">
+  <div class="pin">
+<div class="vis">
+    <div class="layer on"><img src="img/int1.jpg" alt=""></div>
+<div class="layer"><img src="img/int2.jpg" alt=""></div>
+<div class="layer"><img src="img/int3.jpg" alt=""></div>
+<div class="layer"><img src="img/int4.jpg" alt=""></div>
+<div class="layer"><img src="img/int5.jpg" alt=""></div>
+    <div class="meter"><i></i></div>
+    <div class="steps"><span>Common room</span><span>Corridor</span><span>Work bay</span><span>Quarters</span><span>Service side</span></div>
+</div>
+    <div class="cap" data-caps='[["03 · Inside", "Soft walls, hard shell.", "Past the port it is 8.2 psi and 34 % oxygen. The pressurised volume is delivered, not printed: an inflatable liner inside the block vault. The block does the shielding; the soft structure does the living."], ["03 · Inside", "The corridor.", "A 1.1 × 2.09 m translation path stays clear through every hatch, enough for a suited crew member in a contingency."], ["03 · Inside", "Work bay.", "Benches, racks and bunks along the service side of each element, reachable from a shirt-sleeve environment. In-situ repair is limited, so maintenance items are few and accessible."], ["03 · Inside", "Quarters.", "A private cabin each, tunable light on a 24-hour cycle, and a window to the pole."], ["03 · Inside", "The systems live in the walls.", "Air revitalisation, water recovery, thermal control and power distribution run behind the liner, with the trunk from the pavement entering at each port."]]'>
+      <div class="eyebrow"></div><h2></h2><p></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STAGE: POWER ============ -->
+<section class="stage seq img" id="power" style="height:840vh">
+  <div class="pin">
+<div class="vis">
+    <div class="layer on"><div class="grid g3"><img src="img/tw01.jpg" alt=""><img src="img/tw02.jpg" alt=""><img src="img/tw03.jpg" alt=""></div></div>
+<div class="layer"><div class="grid g3"><img src="img/tw04.jpg" alt=""><img src="img/tw05.jpg" alt=""><img src="img/tw06.jpg" alt=""></div></div>
+<div class="layer"><div class="grid g3"><img src="img/tw07.jpg" alt=""><img src="img/tw08.jpg" alt=""><img src="img/tw09.jpg" alt=""></div></div>
+<div class="layer"><div class="grid g3"><img src="img/tw10.jpg" alt=""><img src="img/tw11.jpg" alt=""><img src="img/tw12.jpg" alt=""></div></div>
+<div class="layer"><div class="grid g3"><img src="img/tw13.jpg" alt=""><img src="img/tw14.jpg" alt=""><img src="img/tw15.jpg" alt=""></div></div>
+<div class="layer"><div class="grid g3"><img src="img/tw16.jpg" alt=""><img src="img/tw17.jpg" alt=""><img src="img/tw18.jpg" alt=""></div></div>
+<div class="layer"><img src="img/tw_field.jpg" alt="" style="object-fit:cover"></div>
+    <div class="meter"><i></i></div>
+    <div class="steps"><span>Column → tower</span><span>Panels in cells</span><span>Open / closed</span><span>Block / strut</span><span>Taper / plinth</span><span>Variants</span><span>Field</span></div>
+</div>
+    <div class="cap" data-caps='[["04 · Power", "The column keeps growing.", "Column A was a hollow ring of blocks 2.5 m high. Drop one cell per course and it tapers; keep stacking and it is a tower. The hexagonal cells are empty, and that is the point."], ["04 · Power", "Every cell takes a panel.", "At the pole the Sun stays near the horizon, so panels stand up rather than lie flat. Each cell of the lattice is a seat for one array: the structure is built on site, the panels arrive pre-made and clip in."], ["04 · Power", "Open lattice, closed lattice.", "How many cells are filled is a power decision, not a structural one. The same stack can carry a few panels on a sparse frame or a full skin of them."], ["04 · Power", "Block or strut.", "The lattice can be laid as solid block cells or as the block’s edges only, a strut frame printed from the same geometry. Both stand on the same paved footing."], ["04 · Power", "Tapers and plinths.", "A tower can taper by dropping a cell per course, or rise straight from a wider ring that doubles as a plinth and service base."], ["04 · Power", "Many answers to one question.", "Eighteen towers from the same block: different tapers, densities and panel seats. The lattice is a family, and the right member depends on the site&#39;s light and the plant&#39;s size."], ["04 · Power", "A field of columns is a power plant.", "Multiply the tower on paved footings and the outpost has its plant. The trunk runs under the pavement to the vault and each bay, 6 kW at 120 VDC per port."]]'>
+      <div class="eyebrow"></div><h2></h2><p></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STAGE: HYBRID ============ -->
+<section class="stage seq img" id="hybrid" style="height:1330vh">
+  <div class="pin">
+<div class="vis">
+    <div class="layer on"><img src="img/fl1.jpg" alt=""></div>
+<div class="layer"><img src="img/fl2.jpg" alt=""></div>
+<div class="layer"><img src="img/fl3.jpg" alt=""></div>
+<div class="layer"><img src="img/fl4.jpg" alt=""></div>
+<div class="layer"><img src="img/lat1.jpg" alt=""></div>
+<div class="layer"><img src="img/lat2.jpg" alt=""></div>
+<div class="layer"><img src="img/lat3.jpg" alt=""></div>
+<div class="layer"><img src="img/fl5.jpg" alt=""></div>
+<div class="layer"><img src="img/fl6.jpg" alt=""></div>
+<div class="layer"><img src="img/fl7.jpg" alt=""></div>
+<div class="layer"><img src="img/fl8.jpg" alt=""></div>
+<div class="layer"><img src="img/fl9.jpg" alt=""></div>
+    <div class="meter"><i></i></div>
+    <div class="steps"><span>Half open</span><span>Greenhouse</span><span>Workshop</span><span>Large bay</span><span>Stacked cells</span><span>Open lattice</span><span>Frame</span><span>Closed</span><span>Immersive</span><span>Auditorium</span><span>Institute</span><span>EVA / greenhouse</span></div>
+</div>
+    <div class="cap" data-caps='[["05 · Fluid shells", "Decompose the dome.", "Take the shell apart and the lattice shows: the same block with cells left open. Half closed for shielding, half open for light; a dome is a choice of which cells to fill."], ["05 · Fluid shells", "Greenhouse.", "Open the lattice along one side and glaze it, and the shell becomes a greenhouse: fresh food, humidity, oxygen and something green to look at."], ["05 · Fluid shells", "Robotic workshop.", "Leave the lattice open and the frame is a hangar. The robot fleet is maintained here, under a roof the same robots built."], ["05 · Fluid shells", "Robotic workshop, the large bay.", "One big cell for the heavy work: block printers, the pavers and the maintainer, with room to lift a habitat element. The frame carries only itself."], ["05 · Fluid shells", "Stacked cells.", "The lattice is not one room but many: cells stacked and offset, each a bay, an alcove or a passage. Variety is built in by where the cells sit, before any interior arrives."], ["05 · Fluid shells", "Open lattice.", "Leave the cells as a frame on the pavement and the structure is a scaffold for rooms: pressurised modules slot into the cells, and the gaps between them become the routes with choices seen in the interiors."], ["05 · Fluid shells", "The frame alone.", "Rings of block stacked into a hexagonal frame, roofed only where it matters. This is the skeleton of every fluid shell: the same unit, the same gripper, a different pattern of filled and empty cells."], ["05 · Fluid shells", "Closed and buried.", "Every cell filled and a berm over it: the radiation shelter, the medical bay, the quiet rooms. One thickened vault everyone can reach quickly."], ["05 · Fluid shells", "Immersive section.", "The lattice stretched into a long shell: a walk-through space for projection and sound, the settlement&#39;s cinema and gallery in one."], ["05 · Fluid shells", "Auditorium.", "Two volumes under one closed skin: the hall on one side, the foyer on the other, the saddle between them the lobby. Lectures, performances, the town meeting."], ["05 · Fluid shells", "Arts and science institute.", "An arch rather than a vault: studios and labs on both sides, and a covered yard between the ports that opens straight onto the surface, so field research and EVA start at the door."], ["05 · Fluid shells", "Robot and human in EVA.", "The ribbon shell glazed where it faces the Earth. A place to work side by side with the robots outside, or a second greenhouse: the lattice does not decide, the programme does."]]'>
+      <div class="eyebrow"></div><h2></h2><p></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STAGE: FLUIDIN ============ -->
+<section class="stage seq img" id="fluidin" style="height:1700vh">
+  <div class="pin">
+<div class="vis">
+    <div class="layer on"><img src="img/fi01.jpg" alt=""></div>
+<div class="layer"><img src="img/fi10.jpg" alt=""></div>
+<div class="layer"><img src="img/fi08.jpg" alt=""></div>
+<div class="layer"><img src="img/fi09.jpg" alt=""></div>
+<div class="layer"><img src="img/fi11.jpg" alt=""></div>
+<div class="layer"><img src="img/fi14.jpg" alt=""></div>
+<div class="layer"><img src="img/fi03.jpg" alt=""></div>
+<div class="layer"><img src="img/fi04.jpg" alt=""></div>
+<div class="layer"><img src="img/fi05.jpg" alt=""></div>
+<div class="layer"><img src="img/fi06.jpg" alt=""></div>
+<div class="layer"><img src="img/fi07.jpg" alt=""></div>
+<div class="layer"><img src="img/fi02.jpg" alt=""></div>
+<div class="layer"><img src="img/fi12.jpg" alt=""></div>
+<div class="layer"><img src="img/fi13.jpg" alt=""></div>
+<div class="layer"><img src="img/fi15.jpg" alt=""></div>
+<div class="layer"><img src="img/fi16.jpg" alt=""></div>
+    <div class="meter"><i></i></div>
+    <div class="steps"><span>Garden room</span><span>Greenhouse</span><span>Institute hall</span><span>Auditorium</span><span>Auditorium · lit cells</span><span>Auditorium · gathering</span><span>Immersive · lunar vault</span><span>Immersive · crater wall</span><span>Immersive · observatory</span><span>Immersive · starfield</span><span>Immersive · night sky</span><span>Lounge</span><span>The circle</span><span>Quiet room</span><span>Alcoves</span><span>Passages</span></div>
+</div>
+    <div class="cap" data-caps='[["05 · Inside the shells", "Greenhouse · the garden room.", "Planting beds built into the seating, under a liner that follows the lattice above it. Humidity, oxygen and green in the common space."], ["05 · Inside the shells", "Greenhouse · the racks.", "Racks of crops under grow light in a long shell. Fresh food, and the loop that keeps the air breathable."], ["05 · Inside the shells", "Moon Art and Science Institute.", "Terraced seating, a stage, and the Moon itself on the wall. Lectures and performances for the settlement; the town hall on other days."], ["05 · Inside the shells", "Auditorium.", "The closed twin shell from inside: a curved screen at the front, the lattice cells reading through the liner overhead."], ["05 · Inside the shells", "Auditorium · lit cells.", "Raked seating under a ceiling of lit cells: the lattice above, read through fabric."], ["05 · Inside the shells", "Auditorium · gathering.", "Stepped platforms for a crowd, with the block showing through at the edge where the liner meets the shell."], ["05 · Inside the shells", "Immersive · lunar vault.", "A projected Moon on the ceiling: a window where there can be none, during the weeks of a solar event."], ["05 · Inside the shells", "Immersive · crater wall.", "The surface outside brought in at full scale, for people who cannot go out and for those planning to."], ["05 · Inside the shells", "Immersive · observatory.", "The dome from below, with the far side of the Moon overhead. A room for looking up."], ["05 · Inside the shells", "Immersive · starfield.", "Tunable light on a 24-hour cycle, because the pole gives weeks of low sun and no night. Here the night is made."], ["05 · Inside the shells", "Immersive · night sky.", "The sky the pole never shows: a slow projection of what is above, and a reason to stay up."], ["05 · Inside the shells", "Lounge.", "Soft structure inside hard shell. The liner carries pressure; the block carries the regolith. Light comes from the seams."], ["05 · Inside the shells", "The circle.", "Stools in a ring around a low platform: the meeting place for the whole crew, under a ceiling that is only light and fold."], ["05 · Inside the shells", "Quiet room.", "A room with no function: for meditation, religion, grief or silence. Every station that lasted found it needed one."], ["05 · Inside the shells", "Alcoves.", "Three bays off a skylight: places to sit apart without leaving the room. Variety is the cure for monotony."], ["05 · Inside the shells", "Passages.", "The lattice cells become a sequence of rooms and openings: routes with choices, so the inside is never one corridor."]]'>
+      <div class="eyebrow"></div><h2></h2><p></p>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ============ STAGE: CIRCADIAN ============ -->
+<section class="stage seq img" id="circadian" style="height:560vh">
+  <div class="pin">
+<div class="vis">
+    <div class="layer on"><img src="img/cr1.jpg" alt=""></div>
+<div class="layer"><img src="img/cr2.jpg" alt=""></div>
+<div class="layer"><img src="img/cr3.jpg" alt=""></div>
+<div class="layer"><img src="img/cr4.jpg" alt=""></div>
+    <div class="meter"><i></i></div>
+    <div class="steps"><span>Morning</span><span>Midday</span><span>Evening</span><span>Night</span></div>
+</div>
+    <div class="cap" data-caps='[["06 · Circadian rhythm", "The pole has no day. The room makes one.", "At the south pole the Sun circles the horizon for weeks and then is gone for weeks. Nothing outside tells the body when to sleep, so the light inside has to. Morning: warm, low, rising from the seams."], ["06 · Circadian rhythm", "Midday.", "Cool and bright, high colour temperature, the ceiling at its strongest. The same room, the same liner: only the light has changed, and with it the hour."], ["06 · Circadian rhythm", "Evening.", "Warm and red, light dropping to the floor. Melatonin is left alone; the room tells the crew the day is ending before the clock does."], ["06 · Circadian rhythm", "Night.", "Almost dark: a seam of light at the thresholds and the porthole, enough to move by. Polar winters taught this first: circadian disruption is the first thing to go wrong, and tunable light is the cheapest fix."]]'>
+      <div class="eyebrow"></div><h2></h2><p></p>
+    </div>
+  </div>
+</section>
+
+<section class="sec wrap" id="site">
+  <div class="head">
+    <div><div class="eyebrow">07 · Site notes</div><h2>Four candidate regions, one chosen for the walk</h2></div>
+    <p class="lead">Connecting Ridge, de Gerlache Rim 2, Malapert Massif and Nobile Rim 1 scored in Report 02 on light, ice distance, slope and landing access. The structures in this report are drawn on Connecting Ridge: long sunlit periods, a shadowed floor within reach, and a flat shoulder for the pad.</p>
+  </div>
+  <div class="grid3">
+    <div class="pg"><i class="pgi"><svg viewBox="0 0 48 48"><path d="M24 6l15 9v18l-15 9-15-9V15z"/><circle cx="24" cy="24" r="9"/><path d="M24 15v18M15 24h18"/><circle cx="27" cy="21" r="1.8" fill="currentColor"/></svg></i><b>Map tool</b><p>The site view links to JSMARS, a zero-install planetary GIS in the browser by Prof. Anwar Sounny-Slitine. It is in beta; the Moon basemap and layers are still being added, so the link opens the region rather than a prepared map.</p></div>
+    <div class="pg"><i class="pgi"><svg viewBox="0 0 48 48"><path d="M24 6l15 9v18l-15 9-15-9V15z"/><path d="M13 30h22"/><path d="M15 30l6-6 5 3 4-5 5 8"/><path d="M19 30v-2M29 30v-2"/></svg></i><b>What the site has to give</b><p>A flat, compacted shoulder for the pad; an approach below 20° for surface vehicles; a berm line between pad and vault; and foundation seats levelled to under 1° for element placement.</p></div>
+    <div class="pg"><i class="pgi"><svg viewBox="0 0 48 48"><path d="M24 6l15 9v18l-15 9-15-9V15z"/><path d="M14 31h20M16 31l2-4h12l2 4" /><path d="M24 15v6M21 18l3 3 3-3" /><circle cx="24" cy="26" r="1.4" fill="currentColor"/></svg></i><b>What NASA has not decided</b><p>Site preparation. The Moon Base ground rules (Oct 2026) say compaction and levelling are "not yet resolved" and ask bidders to state their assumptions. The pavement in this report is that assumption, made concrete.</p></div>
+  </div>
+</section>
+
+<!-- ============ PROGRAMME ============ -->
+<section class="sec wrap" id="programme">
+  <div class="head">
+    <div><div class="eyebrow">08 · Programme</div><h2>What a settlement needs that a base does not</h2></div>
+    <p class="lead">Analog stations in Antarctica, submarines and the ISS agree on what keeps people well in a sealed place. All of it is shells, seats and ports from the same block; the difference is what goes behind the port.</p>
+  </div>
+  <div class="grid3">
+    <div class="pg"><i class="pgi"><svg viewBox="0 0 48 48"><path d="M24 6l15 9v18l-15 9-15-9V15z"/><path d="M24 14v20M16 19l8 5 8-5"/><circle cx="24" cy="24" r="3" fill="currentColor"/></svg></i><b>Body</b><p>Greenhouse and food; gym and a long straight run; medical bay with an isolation room; a deep radiation shelter (one thickened vault); dust control with a clean/dirty line through the whole plan.</p></div>
+    <div class="pg"><i class="pgi"><svg viewBox="0 0 48 48"><path d="M24 6l15 9v18l-15 9-15-9V15z"/><path d="M12 30q12-14 24 0"/><path d="M24 12v4M15 15l2 3M33 15l-2 3"/></svg></i><b>Mind</b><p>Tunable light on a 24-hour cycle; a private cabin each and quiet rooms; Earth-facing windows and varied routes; one room with no function at all.</p></div>
+    <div class="pg"><i class="pgi"><svg viewBox="0 0 48 48"><path d="M24 6l15 9v18l-15 9-15-9V15z"/><circle cx="24" cy="24" r="7"/><circle cx="24" cy="24" r="1.6" fill="currentColor"/><circle cx="17" cy="20" r="1.6" fill="currentColor"/><circle cx="31" cy="20" r="1.6" fill="currentColor"/><circle cx="17" cy="28" r="1.6" fill="currentColor"/><circle cx="31" cy="28" r="1.6" fill="currentColor"/><circle cx="24" cy="32" r="1.6" fill="currentColor"/><circle cx="24" cy="16" r="1.6" fill="currentColor"/></svg></i><b>Community</b><p>One table big enough for everyone and a real kitchen; a workshop open to residents; an arts and science institution that doubles as the town hall; private, good links home.</p></div>
+    <div class="pg"><i class="pgi"><svg viewBox="0 0 48 48"><path d="M24 6l15 9v18l-15 9-15-9V15z"/><path d="M14 20h20M14 24h20M14 28h20"/><path d="M19 16v16M29 16v16" stroke-dasharray="2 2"/></svg></i><b>Systems</b><p>Water and waste loops with visible reserves; thermal zoning rather than one climate; a bathhouse.</p></div>
+    <div class="pg"><i class="pgi"><svg viewBox="0 0 48 48"><path d="M24 6l15 9v18l-15 9-15-9V15z"/><path d="M15 30h18M18 30v-6h4v6M26 30v-10h4v10"/><path d="M24 14v6"/></svg></i><b>Industry</b><p>Block printing and laser forming at the regolith face; a maintenance yard for the robot fleet; logistics bays rated for repeated docking.</p></div>
+    <div class="pg"><i class="pgi"><svg viewBox="0 0 48 48"><path d="M24 6l15 9v18l-15 9-15-9V15z"/><path d="M14 30q10-12 20 0"/><path d="M24 12l3 6h-6z" fill="currentColor"/><path d="M19 30v-5M29 30v-5"/></svg></i><b>Institution</b><p>The cultural wing: the same lattice with studios, labs and galleries behind the ports, and the Earth in every window.</p></div>
+  </div>
+</section>
+
+<!-- ============ NASA ============ -->
+
+<section class="sec wrap">
+  <div class="head">
+    <div><div class="eyebrow">09 · Next steps</div><h2>Report 04</h2></div>
+    <div class="grid3">
+      <div><b>Isaac Sim</b><p>Paving loop with two pavers and a maintainer; the wall and column re-run at the current tilt; a first dome course on the rim ring.</p></div>
+      <div><b>Environment build</b><p>The real site terrain and the built structures assembled in Isaac Sim as one environment — exteriors first, then the pressurised interiors — so every later run happens on the actual ground.</p></div>
+      <div><b>VR walk</b><p>That environment exported as a VR experience of the whole settlement: walk the pavement, enter a shell, stand in the alcove light — the Report 03 scroll, but inhabited.</p></div>
+      <div><b>Robots among people</b><p>Human–robot interaction staged in the same scenes: paver traffic beside EVA crew, handover zones, approach and stop distances at the ports.</p></div>
+      <div><b>Operations &amp; interfaces</b><p>Robot operations simulated end to end — pick, haul, place, inspect — and the operator interfaces drafted on top: task queue, block registry, camera and map views.</p></div>
+      <div><b>Geometry</b><p>Tower lattice from Column A; cell-to-panel seat; hybrid skin as one Grasshopper definition from pavement to dome.</p></div>
+      <div><b>Site</b><p>Candidate region drawn in JSMARS once the Moon layers land; foundation seat tolerance against NASA's 3° threshold.</p></div>
+      <div><b>Programme</b><p>Zones on the masterplan: habitat chain, greenhouse and water, body and mind, industry, institution.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer class="wrap">Moonwalk 2.0 · Report 03 · Nina Velimirović · Tohoku University Space Robotics Laboratory, October 2026 · Block geometry and Report 02 results: <a href="https://arhimatrix.github.io/arhimatrix-moonwalk-2-rep_02/">Report 02</a> · Renders are concept images · NASA figures from NextSTEP-3 Appendix B (80MSFC26R0003) Amendment 2 and Directed Call 2 GRACs · Map: <a href="https://jsmars.sounny.com/">JSMARS</a> (beta)</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/math/ConvexHull.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/ConvexGeometry.js"></script>
+<script>
+(function(){
+'use strict';
+var ok=typeof THREE!=='undefined';
+var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function $(id){return document.getElementById(id)}
+function clamp(x,a,b){return Math.max(a,Math.min(b,x))}
+function ease(p){return p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2}
+function prog(sec){var r=sec.getBoundingClientRect(),vh=innerHeight;return clamp(-r.top/(r.height-vh),0,1)}
+
+/* ---------- generic: meters, step lists, sequences ---------- */
+var stages=[].slice.call(document.querySelectorAll('.stage'));
+function stepList(sec,i){var s=sec.querySelectorAll('.steps span');s.forEach(function(el,k){el.classList.toggle('on',k===i);el.classList.toggle('done',k<i)})}
+var seqs=stages.filter(function(s){return s.classList.contains('seq')}).map(function(s){
+  var cap=s.querySelector('.cap'),caps=JSON.parse(cap.getAttribute('data-caps')),layers=s.querySelectorAll('.layer');
+  var st={sec:s,caps:caps,layers:layers,cap:cap,i:-1};
+  function setI(i){ if(i===st.i) return; st.i=i; layers.forEach(function(l,k){l.classList.toggle('on',k===i)});
+    cap.querySelector('.eyebrow').textContent=caps[i][0]; cap.querySelector('h2').textContent=caps[i][1]; cap.querySelector('p').textContent=caps[i][2]; stepList(s,i); }
+  st.set=setI; setI(0);
+  // click a step name to scroll to that image
+  s.querySelectorAll('.steps span').forEach(function(el,k){ el.style.pointerEvents='auto'; el.style.cursor='pointer'; el.addEventListener('click',function(){ var n=caps.length, h=s.offsetHeight-innerHeight; scrollTo({top:s.getBoundingClientRect().top+scrollY+h*((k+0.5)/n),behavior:reduce?'auto':'smooth'}); }); });
+  return st; });
+
+/* ---------- stage 2: block → dome ---------- */
+var blk=null;
+if(ok){ (function(){
+  var cv=$('blockGl'), R=new THREE.WebGLRenderer({canvas:cv,antialias:true}); R.setPixelRatio(Math.min(devicePixelRatio,2));
+  var sc=new THREE.Scene(); sc.background=new THREE.Color(0x0B0F16);
+  var cam=new THREE.PerspectiveCamera(30,1,0.01,500);
+  var key=new THREE.DirectionalLight(0xffffff,1.1); key.position.set(6,8,4); key.castShadow=true; key.shadow.mapSize.set(2048,2048); key.shadow.bias=-0.0006; key.shadow.normalBias=0.02; sc.add(key);
+  var fill=new THREE.DirectionalLight(0x9fb4ff,0.35); fill.position.set(-6,3,-5); sc.add(fill);
+  sc.add(new THREE.HemisphereLight(0x3a4150,0x0b0f16,0.9));
+  // floor: dark plane with a fine grid, as in Report 02
+  (function(){ var ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.ShadowMaterial({opacity:0.45})); ground.rotation.x=-Math.PI/2; ground.position.y=-0.002; ground.receiveShadow=true; sc.add(ground);
+    var grid=new THREE.GridHelper(200,400,0x2a3140,0x1c222c); grid.position.y=-0.001; sc.add(grid); var grid2=new THREE.GridHelper(200,40,0x3a4150,0x2a3140); sc.add(grid2); })();
+  // block surface: sintered regolith, fine grain
+  var blockTex=(function(){ var c=document.createElement('canvas'); c.width=c.height=256; var g=c.getContext('2d'); g.fillStyle='#b4b4b2'; g.fillRect(0,0,256,256); for(var i=0;i<16000;i++){ var v=90+Math.random()*130|0; g.fillStyle='rgba('+v+','+v+','+(v-2)+','+(0.3+Math.random()*0.55)+')'; var r=0.6+Math.random()*2.2; g.beginPath(); g.arc(Math.random()*256,Math.random()*256,r,0,6.283); g.fill(); } for(i=0;i<40;i++){ v=70+Math.random()*40|0; g.fillStyle='rgba('+v+','+v+','+v+',0.35)'; g.beginPath(); g.arc(Math.random()*256,Math.random()*256,3+Math.random()*6,0,6.283); g.fill(); } var t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(3,3); t.encoding=THREE.sRGBEncoding; return t; })();
+  var root=new THREE.Group(); sc.add(root);
+  // --- block family (Report 02 definition, units: mm → scene units m) ---
+  var GA=200, GS=GA/Math.SQRT2, GAP=GS*Math.sqrt(3)/2, GD=2*GAP, TMAX=35.26; var PHI=0;
+  function sideN(k,th){ var a=PHI+Math.PI/6+k*Math.PI/3, t=th*Math.PI/180, s=(k%2?-1:1); return new THREE.Vector3(Math.cos(t)*Math.cos(a),s*Math.sin(t),Math.cos(t)*Math.sin(a)); }
+  function planes(th,T){ var P=[]; for(var k=0;k<6;k++){ var t=th*Math.PI/180; P.push([sideN(k,th),Math.cos(t)*GAP]); } P.push([new THREE.Vector3(0,1,0),T/2]); P.push([new THREE.Vector3(0,-1,0),T/2]); return P; }
+  function verts(th,T){ var P=planes(th,T),V=[],m=new THREE.Matrix3(),v=new THREE.Vector3();
+    for(var i=0;i<P.length;i++)for(var j=i+1;j<P.length;j++)for(var k=j+1;k<P.length;k++){ var a=P[i][0],b=P[j][0],d=P[k][0]; m.set(a.x,a.y,a.z,b.x,b.y,b.z,d.x,d.y,d.z); if(Math.abs(m.determinant())<1e-9) continue;
+      v.set(P[i][1],P[j][1],P[k][1]).applyMatrix3(m.clone().invert());
+      if(P.every(function(p){return p[0].dot(v)<=p[1]+1e-6}) && !V.some(function(w){return w.distanceToSquared(v)<1e-4})) V.push(v.clone()); }
+    return V; }
+  var GEO={};
+  function geo(th,T){ var k=th.toFixed(1)+'|'+T.toFixed(0); if(GEO[k]) return GEO[k]; var g;
+    if(th<0.05){ g=new THREE.CylinderGeometry(GS/1000,GS/1000,T/1000,6,1); g.rotateY(Math.PI/2-PHI); g=g.toNonIndexed(); g.computeVertexNormals(); }
+    else { g=new THREE.ConvexGeometry(verts(th,T).map(function(p){return p.multiplyScalar(0.001)})); }
+    // triplanar-ish UVs so the grain texture reads on every face
+    (function(){ var pa=g.attributes.position, n=pa.count, uv=new Float32Array(n*2); for(var i=0;i<n;i++){ var x=pa.getX(i),y=pa.getY(i),z=pa.getZ(i); uv[2*i]=(x+z)*4; uv[2*i+1]=(y+z*0.5)*4; } g.setAttribute('uv',new THREE.BufferAttribute(uv,2)); })();
+    return (GEO[k]=g); }
+  var COLS=[0xD9D0C1,0xD9B596,0xD39672,0xC77953,0xB25B3D].map(function(c){return new THREE.Color(c)});
+  var mat=new THREE.MeshStandardMaterial({roughness:0.85,metalness:0.0});
+  var edgeMat=new THREE.LineBasicMaterial({color:0x0B0F16,transparent:true,opacity:0.55});
+  // state
+  var S={stage:0,tilt:0,T:100,n:5,m:3,spin:true,edges:true,dirty:true};
+  var hexAx=[]; function hexGrid(rings){ var out=[]; for(var q=-rings;q<=rings;q++)for(var r=-rings;r<=rings;r++){ var s=-q-r; if(Math.max(Math.abs(q),Math.abs(r),Math.abs(s))<=rings) out.push([q,r,Math.max(Math.abs(q),Math.abs(r),Math.abs(s))]); } return out; }
+  function hexPos(q,r){ var d=GD/1000; return [d*(q+r/2), d*Math.sqrt(3)/2*r]; }
+  var mats={};
+  function matFor(step){ if(!mats[step]){ mats[step]=mat.clone(); mats[step].color=COLS[step]; } return mats[step]; }
+  function placeMany(list){ // list of {th,T,pos:[x,y,z],quat?,step}
+    // group by (th,T,step) into InstancedMesh
+    var groups={}; list.forEach(function(b){ var k=b.th.toFixed(1)+'|'+b.T+'|'+b.step; (groups[k]=groups[k]||{th:b.th,T:b.T,step:b.step,items:[]}).items.push(b); });
+    var m4=new THREE.Matrix4(),q=new THREE.Quaternion(),pos=new THREE.Vector3(),scl=new THREE.Vector3(1,1,1);
+    Object.keys(groups).forEach(function(k){ var G=groups[k], g=geo(G.th,G.T), im=new THREE.InstancedMesh(g,matFor(G.step),G.items.length);
+      G.items.forEach(function(b,i){ pos.set(b.pos[0],b.pos[1],b.pos[2]); q.copy(b.quat||new THREE.Quaternion()); m4.compose(pos,q,scl); im.setMatrixAt(i,m4); });
+      im.castShadow=true; im.receiveShadow=true; root.add(im);
+      if(S.edges&&G.items.length<=400){ var eg=new THREE.EdgesGeometry(g,20); G.items.forEach(function(b){ var l=new THREE.LineSegments(eg,edgeMat); l.position.set(b.pos[0],b.pos[1],b.pos[2]); if(b.quat) l.quaternion.copy(b.quat); root.add(l); }); }
+    }); }
+  function stepOf(th){ return Math.min(4,Math.round(th/TMAX*4)); }
+  var camTarget=new THREE.Vector3(), camDist=1, camElev=0.5, count=0, mass=0, zoom=1;
+  function setZoom(z){ zoom=Math.max(0.15,Math.min(2.5,z)); }
+  function fit(list,pad){ var bb=new THREE.Box3(); list.forEach(function(b){ bb.expandByPoint(new THREE.Vector3(b.pos[0],b.pos[1],b.pos[2])); }); bb.expandByScalar(0.3); var c=bb.getCenter(new THREE.Vector3()), r=bb.getSize(new THREE.Vector3()).length()/2; camTarget.copy(c); var asp=Math.max(0.6,Math.min(1,cam.aspect)); camDist=(r*(pad||1.15))/(Math.sin(cam.fov*Math.PI/360)*asp); }
+  function build(){ while(root.children.length) root.remove(root.children[0]); Object.keys(GEO).length>40&&(GEO={});
+    var list=[], T=S.T, th=S.tilt, rho=2300, vol=1.5*Math.sqrt(3)*GS*GS*T/1e9; // m^3 (prism approx)
+    if(S.stage===0){ list.push({th:th,T:T,pos:[0,T/2000,0],step:stepOf(th)}); fit(list,0.9); }
+    else if(S.stage===1){ // graded pad: n rings, m graded; tilt rises to S.tilt (edge) over graded band
+      hexGrid(S.n).forEach(function(h){ var ring=h[2], band=Math.max(1,S.m), L=clamp((ring-(S.n-band))/band,0,1), t=Math.round(L*4)/4*th; var p=hexPos(h[0],h[1]); list.push({th:t,T:T,pos:[p[0],T/2000,p[1]],step:stepOf(t)}); });
+      fit(list,1.1); }
+    else if(S.stage===2){ // wall: courses of blocks stood on edge; brick bond
+      var courses=S.n, cols=S.m+4, pitch=GD/1000, hc=1.5*GS/1000, Tm=T/1000; var qz=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),Math.PI/2);
+      for(var c=0;c<courses;c++) for(var i=0;i<cols;i++){ var x=(i-(cols-1)/2)*pitch+(c%2?pitch/2:0); list.push({th:th,T:T,pos:[x,hc*(c+0.5),0],quat:qz,step:stepOf(th)}); }
+      fit(list,0.95); }
+    else if(S.stage===3){ // column: hexagonal ring of 6 per course, rotated alternately
+      var rings=S.n*2, rad=(S.m+1)*GD/1000*0.6, hcol=T/1000;
+      for(c=0;c<rings;c++){ var nper=Math.max(6,Math.round(2*Math.PI*rad/(GD/1000))); for(i=0;i<nper;i++){ var a=i/nper*2*Math.PI+(c%2?Math.PI/nper:0); var qy=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),-a); list.push({th:th,T:T,pos:[Math.cos(a)*rad,hcol*(c+0.5),Math.sin(a)*rad],quat:qy,step:stepOf(th)}); } }
+      fit(list,1.0); }
+    else { // dome: the pad's hexagonal grid mapped onto the cap with an equal-area (Lambert) projection, so neighbours stay in contact
+      var span=2+S.n*0.8, rise=Math.min(span/2,0.4+S.m*0.3), Rs=(span*span/4+rise*rise)/(2*rise), up=new THREE.Vector3(0,1,0);
+      var thMax=Math.asin(Math.min(1,(span/2)/Rs)); var rhoMax=2*Rs*Math.sin(thMax/2); // planar radius covering the cap
+      var cell=GD/1000*(S.T/100)*1.0; var rr=Math.ceil(rhoMax/cell)+1;
+      hexGrid(rr).forEach(function(h){ var p=hexPos(h[0],h[1]); var px=p[0]*(S.T/100), pz=p[1]*(S.T/100), rho=Math.sqrt(px*px+pz*pz); if(rho>rhoMax) return;
+        var tht=2*Math.asin(Math.min(1,rho/(2*Rs))); var ph=Math.atan2(pz,px);
+        var x=Rs*Math.sin(tht)*Math.cos(ph), z=Rs*Math.sin(tht)*Math.sin(ph), y=Rs*Math.cos(tht)-(Rs-rise);
+        var nrm=new THREE.Vector3(x,y+(Rs-rise),z).normalize(); var q=new THREE.Quaternion().setFromUnitVectors(up,nrm);
+        var t=Math.max(th,8); var rim=rho>rhoMax-cell*1.05; list.push({th:t,T:T,pos:[x+nrm.x*T/2000,y+nrm.y*T/2000,z+nrm.z*T/2000],quat:q,step:rim?4:stepOf(t)}); });
+      fit(list,1.15); }
+    count=list.length; mass=count*vol*rho; placeMany(list); S.dirty=false; stat(); }
+  function stat(){ var kg=mass; $('pnStat').innerHTML='<b>'+count+'</b> blocks · <b>'+(kg>=1000?(kg/1000).toFixed(1)+' t':Math.round(kg)+' kg')+'</b> at 2,300 kg/m³ · side tilt <b>'+S.tilt.toFixed(1)+'°</b>'; }
+  var titles=['The block','Graded pad','Wall','Column','Dome'], lab=[['Rings','Graded rings'],['Rings','Graded rings'],['Courses','Length'],['Height','Radius'],['Span','Rise']];
+  var caps=[['02 · The block · recap','One hexagon, five tilts.','Report 02 defined the block: six side faces that lean alternately in and out. At 0° it is a plain prism; at 35.3° its faces are those of a cube on its corner. 200 mm cube edge, 283 mm across, 100 mm thick, about 12 kg. The tilt is the only thing that changes, and it is what makes the blocks lock.'],
+    ['02 · Pavement','Rings from the centre, tilt towards the edge.','A flat 0° core bedded on compacted ground, locked in by tilted rings whose parted corners open the dust pockets. In Isaac Sim the full-tilt pad stood with only its rim held.'],
+    ['02 · Wall','Stand the pavement up.','The same block on edge, in courses. Alternating tilts lock each course into the one below, and the pitch equals the pavement pitch, so the wall lands on the grid without cut blocks.'],
+    ['02 · Column','Close the wall into a ring.','A hollow hexagonal ring, course on course, filled with loose regolith. Column A stands 2.5 m in Isaac Sim at 10.9 t. Keep stacking and it becomes the power tower.'],
+    ['02 · Dome','Bend the pavement into a cap.','The pad mapped onto a sphere. Each block leans on its neighbours as it does on the ground, and a rim ring seats the shell, so it carries itself as it grows, with no centering.']];
+  var curStage=-1;
+  function setStage(i){ if(i===curStage) return; curStage=i; S.stage=i; S.dirty=true; camElev=[0.45,0.75,0.3,0.25,0.35][i]; zoom=1; $('pnTitle').textContent=titles[i]; $('lN').textContent=lab[i][0]; $('lM').textContent=lab[i][1];
+    var c=caps[i]; $('blkEyebrow').textContent=c[0]; $('blkH').textContent=c[1]; $('blkP').textContent=c[2]; stepList($('block'),i);
+    // sensible defaults per stage
+    var sN=$('sN'),sM=$('sM'),sTilt=$('sTilt');
+    if(i===0){ sN.disabled=sM.disabled=true; }
+    else { sN.disabled=sM.disabled=false; }
+    if(i===1){ sN.min=3;sN.max=10;sN.value=6; sM.min=1;sM.max=6;sM.value=3; sTilt.value=35.26; }
+    if(i===2){ sN.min=2;sN.max=10;sN.value=5; sM.min=2;sM.max=14;sM.value=6; sTilt.value=19.9; }
+    if(i===3){ sN.min=2;sN.max=10;sN.value=6; sM.min=0;sM.max=4;sM.value=1; sTilt.value=15; }
+    if(i===4){ sN.min=1;sN.max=10;sN.value=5; sM.min=1;sM.max=8;sM.value=4; sTilt.value=25; }
+    read(); }
+  function read(){ S.tilt=parseFloat($('sTilt').value); S.T=parseFloat($('sT').value); S.n=parseInt($('sN').value,10); S.m=parseInt($('sM').value,10);
+    $('oTilt').textContent=S.tilt.toFixed(1)+'°'; $('oT').textContent=S.T+' mm'; $('oN').textContent=S.n; $('oM').textContent=S.m; S.dirty=true; }
+  ['sTilt','sT','sN','sM'].forEach(function(id){ $(id).addEventListener('input',read); });
+  $('bSpin').addEventListener('click',function(){ S.spin=!S.spin; this.setAttribute('aria-pressed',S.spin); });
+  $('bEdges').addEventListener('click',function(){ S.edges=!S.edges; this.setAttribute('aria-pressed',S.edges); S.dirty=true; });
+  var az=0.6, lastT=performance.now(), cd=1, ct=new THREE.Vector3();
+  function size(){ var w=cv.clientWidth,h=cv.clientHeight; if(cv.width!==w*R.getPixelRatio()|0||cv.height!==h*R.getPixelRatio()|0){ R.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); } }
+  // drag to orbit
+  var drag=null, ptrs={}, pinch=null; cv.style.touchAction='none'; cv.style.cursor='grab';
+  function pd(){ var k=Object.keys(ptrs); if(k.length<2) return 1; var a=ptrs[k[0]],b=ptrs[k[1]]; return Math.hypot(a[0]-b[0],a[1]-b[1])||1; }
+  cv.addEventListener('pointerdown',function(e){ ptrs[e.pointerId]=[e.clientX,e.clientY]; cv.setPointerCapture(e.pointerId); S.spin=false; $('bSpin').setAttribute('aria-pressed','false'); e.preventDefault();
+    if(Object.keys(ptrs).length===2){ pinch=[pd(),zoom]; drag=null; } else { drag=[e.clientX,e.clientY,az,camElev]; cv.style.cursor='grabbing'; } });
+  cv.addEventListener('pointermove',function(e){ if(ptrs[e.pointerId]) ptrs[e.pointerId]=[e.clientX,e.clientY];
+    if(pinch&&Object.keys(ptrs).length===2){ setZoom(pinch[1]*pinch[0]/pd()); return; }
+    if(!drag) return; az=drag[2]+(e.clientX-drag[0])*0.008; camElev=Math.max(0.05,Math.min(1.45,drag[3]-(e.clientY-drag[1])*0.006)); });
+  function endDrag(e){ delete ptrs[e.pointerId]; pinch=null; if(!Object.keys(ptrs).length){ drag=null; cv.style.cursor='grab'; } } cv.addEventListener('pointerup',endDrag); cv.addEventListener('pointercancel',endDrag);
+  cv.addEventListener('wheel',function(e){ if(e.ctrlKey||e.metaKey){ e.preventDefault(); setZoom(zoom*Math.exp(e.deltaY*0.01)); } },{passive:false});
+  $('bZin').addEventListener('click',function(){ setZoom(zoom/1.35); });
+  $('bZout').addEventListener('click',function(){ setZoom(zoom*1.35); });
+  $('bZfit').addEventListener('click',function(){ setZoom(1); });
+  cv.addEventListener('dblclick',function(){ setZoom(zoom/1.6); });
+  blk={render:function(p){ size(); var i=Math.min(4,Math.floor(p*5.0)); setStage(i); if(S.dirty) build();
+      var now=performance.now(), dt=(now-lastT)/1000; lastT=now; if(S.spin&&!reduce) az+=dt*0.25;
+      cd+=(camDist*zoom-cd)*0.12; ct.lerp(camTarget,0.08);
+      cam.position.set(ct.x+Math.cos(az)*Math.cos(camElev)*cd, ct.y+Math.sin(camElev)*cd, ct.z+Math.sin(az)*Math.cos(camElev)*cd); cam.lookAt(ct); R.render(sc,cam); }};
+  setStage(0); build();
+})(); }
+
+/* ---------- hero: from the whole Moon down to the base site (site analysis) ---------- */
+var LUNAR_R=1737.4, KM_DEG=LUNAR_R*Math.PI/180;
+var SITE_DATA={ // lat (deg, south negative), lon (deg east), diameter km. Positions approximate, from published polar maps.
+  craters:[['shack','Shackleton',-89.67,129.8,21],['gerl','de Gerlache',-88.5,-87.1,32],['shoe','Shoemaker',-88.1,44.9,51],['faus','Faustini',-87.3,77,39],
+    ['haw','Haworth',-87.45,-5,35],['sverd','Sverdrup',-88.5,-152,33],['nob','Nobile',-85.2,53.5,73],['cab','Cabeus',-85.3,-42.1,98]],
+  peaks:[['mal','Malapert massif',-86.0,2.9]],
+  ridge:[[-89.82,-150],[-89.46,-99],[-89.02,-90.4]], // Shackleton rim → de Gerlache rim, the "connecting ridge" (indicative line)
+  base:[-89.46,-99],
+  cands:[ // NASA Artemis III candidate regions (15 x 15 km each). Centres approximate. Scores: first-pass, qualitative (3 good, 2 fair, 1 weak).
+    {id:'cr',name:'Connecting Ridge',lat:-89.46,lon:-99,poleKm:16,iceKm:5,n22:true,n24:false,
+      s:{light:3,ice:3,flat:1,slope:2,earth:1,nasa:1},
+      t:{light:'Among the most-lit ground at the pole',ice:'Shackleton\u2019s shadowed floor right beside it',flat:'Narrow crest, little room for a pad',slope:'Gentle along the crest, steep into Shackleton',earth:'Earth low, often below the horizon',nasa:'On the 2022 list, dropped in 2024'}},
+    {id:'dg2',name:'de Gerlache Rim 2',lat:-88.7,lon:-68,poleKm:39,iceKm:8,n22:true,n24:true,
+      s:{light:3,ice:3,flat:2,slope:2,earth:1,nasa:3},
+      t:{light:'High rim at the end of the same ridge system',ice:'de Gerlache\u2019s shadowed floor next to the rim',flat:'Wider rim terrain than the crest',slope:'Rim gentle, crater wall steep',earth:'Earth low on this side of the pole',nasa:'On the current 2024 list'}},
+    {id:'mal',name:'Malapert Massif',lat:-86.0,lon:2.9,poleKm:121,iceKm:30,n22:true,n24:true,
+      s:{light:2,ice:1,flat:2,slope:1,earth:3,nasa:3},
+      t:{light:'High massif, long periods of sun',ice:'Larger shadowed floors tens of km away',flat:'Some level ground on and below the massif',slope:'Steep massif flanks',earth:'Faces the Earth: the best direct link',nasa:'On the current 2024 list'}},
+    {id:'nob1',name:'Nobile Rim 1',lat:-85.4,lon:40,poleKm:139,iceKm:10,n22:true,n24:true,
+      s:{light:2,ice:3,flat:2,slope:2,earth:2,nasa:3},
+      t:{light:'Lit rim, less than the ridges nearer the pole',ice:'Nobile\u2019s shadowed floor; the region VIPER was sent to study',flat:'Moderate rim plains',slope:'Moderate',earth:'Earth visible part of the time',nasa:'On the current 2024 list'}}
+  ] };
+(function(){
+  var canvas=$('moon'); if(!canvas) return; var story=$('story'), stage=canvas.parentElement;
+  var steps=[].slice.call(document.querySelectorAll('#steps .step')), rail=$('rail'), coords=$('coords');
+  steps.forEach(function(s,i){ var b=document.createElement('button'); b.type='button'; b.innerHTML='<span>'+s.dataset.label+'</span>'; b.setAttribute('aria-label','Go to '+s.dataset.label);
+    b.addEventListener('click',function(){ window.scrollTo({top:story.offsetTop+s.offsetTop+(i?s.offsetHeight*0.35:0),behavior:reduce?'auto':'smooth'}); }); rail.appendChild(b); });
+  var railBtns=[].slice.call(rail.children);
+  if(!window.THREE) return;
+  var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true}); renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+  renderer.outputEncoding=THREE.sRGBEncoding; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.0;
+  var scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(32,1,0.002,200), R=1.6, KM=R/LUNAR_R;
+  var loader=new THREE.TextureLoader(), src=window.MOON_TEX||{map:'img/moon.jpg',nrm:'img/moon_n.jpg'};
+  var map=loader.load(src.map); map.encoding=THREE.sRGBEncoding; map.anisotropy=renderer.capabilities.getMaxAnisotropy();
+  var nmap=loader.load(src.nrm); nmap.anisotropy=map.anisotropy;
+  var moon=new THREE.Mesh(new THREE.SphereGeometry(R,256,160),new THREE.MeshStandardMaterial({map:map,normalMap:nmap,normalScale:new THREE.Vector2(1.6,1.6),roughness:1,metalness:0}));
+  var tilt=new THREE.Group(); tilt.add(moon); scene.add(tilt);
+  function dir(lat,lon){ var u=(lon+180)/360, ph=u*Math.PI*2, th=(90-lat)*Math.PI/180; return new THREE.Vector3(-Math.cos(ph)*Math.sin(th),Math.cos(th),Math.sin(ph)*Math.sin(th)); }
+  function ll(lat,lon,h){ return dir(lat,lon).multiplyScalar(R*(h||1.0015)); }
+  function circle(lat,lon,rKm,h,n){ var c=dir(lat,lon), u=new THREE.Vector3(0,1,0).cross(c); if(u.lengthSq()<1e-8) u.set(1,0,0); u.normalize(); var w=c.clone().cross(u), al=rKm/LUNAR_R, out=[];
+    for(var i=0;i<=n;i++){ var t=i/n*Math.PI*2; out.push(c.clone().multiplyScalar(Math.cos(al)).addScaledVector(u,Math.sin(al)*Math.cos(t)).addScaledVector(w,Math.sin(al)*Math.sin(t)).normalize().multiplyScalar(R*h)); } return out; }
+  var anchors={}; var baseO=new THREE.Object3D(); baseO.position.copy(ll(SITE_DATA.base[0],SITE_DATA.base[1])); moon.add(baseO); anchors.base=baseO;
+  var pole=new THREE.Object3D(); pole.position.copy(ll(-90,0)); moon.add(pole);
+  var sun=new THREE.DirectionalLight(0xfff6ea,2.6); scene.add(sun); scene.add(new THREE.AmbientLight(0x6f7c96,0.10)); scene.add(new THREE.HemisphereLight(0x9fb0d0,0x000000,0.06));
+  var rr=(function(s){return function(){s=(s*16807)%2147483647;return (s-1)/2147483646;};})(11), sg=new THREE.BufferGeometry(), pts=[], cols=[];
+  for(var i=0;i<1800;i++){ var th=rr()*Math.PI*2, ph=Math.acos(2*rr()-1), d=80; pts.push(d*Math.sin(ph)*Math.cos(th),d*Math.sin(ph)*Math.sin(th),d*Math.cos(ph)); var b=0.5+rr()*0.5; cols.push(b,b,b*1.05); }
+  sg.setAttribute('position',new THREE.Float32BufferAttribute(pts,3)); sg.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));
+  scene.add(new THREE.Points(sg,new THREE.PointsMaterial({size:0.18,vertexColors:true,transparent:true,opacity:.85,sizeAttenuation:true})));
+  var Wd=1,Ht=1,narrow=false; function size(){ Wd=stage.clientWidth; Ht=stage.clientHeight; renderer.setSize(Wd,Ht,false); camera.aspect=Wd/Ht; camera.updateProjectionMatrix(); narrow=Wd<760; }
+  addEventListener('resize',size); size();
+  function clamp(x,a,b){return Math.max(a,Math.min(b,x));} function seg(p,a,b){var t=clamp((p-a)/(b-a),0,1); return t*t*(3-2*t);} function lerp(a,b,t){return a+(b-a)*t;}
+  var t0=performance.now(), v=new THREE.Vector3(), camDir=new THREE.Vector3(), target=new THREE.Vector3();
+  function progress(){ var h=story.offsetHeight-stage.clientHeight; return clamp((scrollY-story.offsetTop)/Math.max(h,1),0,1); }
+  function frame(now){
+    var p=progress(); if(p>=1&&!reduce&&story.getBoundingClientRect().bottom<0){ requestAnimationFrame(frame); return; }
+    var a=seg(p,0.07,0.24), z=seg(p,0.25,0.40), z2=seg(p,0.41,0.52), dv=0;
+    var h1=seg(p,0.55,0.60)*(1-seg(p,0.69,0.73)), h2=seg(p,0.69,0.73)*(1-seg(p,0.83,0.87)), h3=seg(p,0.83,0.87);
+    if(dataReady){ dataCaps[0].material.opacity=h1; dataCaps[1].material.opacity=h2; dataCaps[2].material.opacity=h3; }
+    var dv2=0, dv3=0; var diveEl=null, d2=null, d3=null; if(diveEl){ diveEl.style.opacity=dv; diveEl.firstElementChild.style.transform='none'; } if(d2){ d2.style.opacity=seg(p,0.85,0.90); d2.firstElementChild.style.transform='scale('+(1+2.6*dv2*dv2)+')'; } 
+    var spin=reduce?0:(now-t0)*0.000035*(1-a);
+    moon.rotation.y=-Math.PI/2+spin*(1-a)+lerp(0,0.9,a);
+    tilt.rotation.x=lerp(0.08,-Math.PI/2+0.42,a); tilt.rotation.z=lerp(0,0.25,a);
+    var off=narrow?0:lerp(0.95,0.55,a)*(1-z); tilt.position.set(off,narrow?-0.35*(1-z):0,0); tilt.updateMatrixWorld(true);
+    var poleW=new THREE.Vector3(), baseW=new THREE.Vector3(); pole.getWorldPosition(poleW); anchors.base.getWorldPosition(baseW);
+    var focus=poleW.clone();
+    target.set(off,narrow?-0.35*(1-z):0,0).lerp(focus,z);
+    var dist=lerp(narrow?7.6:6.4,narrow?1.0:0.8,z); dist=lerp(dist,narrow?0.95:0.62,z2);
+    var nF=focus.clone().sub(tilt.position).normalize();
+    camDir.set(0,0,1).lerp(nF.clone().add(new THREE.Vector3(0,-0.55,0.55)).normalize(),z).normalize();
+    camera.position.copy(target).addScaledVector(camDir,dist); camera.lookAt(target);
+    var tg=new THREE.Vector3().crossVectors(nF,new THREE.Vector3(0,0,1)).normalize(), el0=lerp(0.6,0.10,z), graze=tg.multiplyScalar(Math.cos(el0)).addScaledVector(nF,Math.sin(el0)).multiplyScalar(6);
+    sun.position.set(4,1.2,3.2).lerp(graze,a);
+    renderer.render(scene,camera);
+    var sp=$('secstrip'); if(sp){ var mm=Math.max(h1,h2,h3); sp.style.opacity=mm; sp.children[0].style.opacity=h1>0.5?1:0; sp.children[1].style.opacity=h2>0.5?1:0; sp.children[2].style.opacity=h3>0.5?1:0; }
+    var bp=$('basePin'); if(bp){ var bo=clamp(h1+h2+h3,0,1); bp.style.opacity=bo; if(bo>0.02){ var pv=baseW.clone().project(camera); bp.style.transform='translate('+((pv.x*0.5+0.5)*Wd).toFixed(1)+'px,'+((-pv.y*0.5+0.5)*Ht).toFixed(1)+'px)'; } }
+    var cur=Math.min(steps.length-1,Math.floor(p*steps.length*0.999)); railBtns.forEach(function(b,i){ b.classList.toggle('on',i===cur); });
+    var fh=2*dist*Math.tan(16*Math.PI/180)/R*LUNAR_R, rnd=fh>300?50:fh>60?10:5;
+    coords.textContent=h3>0.5?'DIVINER · MAX TEMPERATURE · SCHEMATIC':h2>0.5?'MAZARICO · AVERAGE ILLUMINATION · SCHEMATIC':h1>0.5?'LOLA · POLAR DEM · SCHEMATIC':z>0.5?'SOUTH POLE · FRAME HEIGHT ≈ '+(Math.round(fh/rnd)*rnd).toLocaleString('en-US')+' KM'+(z2>0.5?' · CONNECTING RIDGE':''):(a>0.5?'SOUTH POLAR REGION · VIEW FROM BELOW':'NEAR SIDE');
+    if(!reduce) requestAnimationFrame(frame); }
+  if(reduce){ addEventListener('scroll',function(){ requestAnimationFrame(frame); },{passive:true}); addEventListener('resize',function(){ requestAnimationFrame(frame); }); }
+  // --- site data layers: schematic proxies derived from the basemap polar band (replace with LOLA / Mazarico / Diviner rasters) ---
+  var dataCaps=[], dataReady=false, TH0=0.26;
+  function buildDataCaps(img){
+    var N=1024, src=document.createElement('canvas'); src.width=img.width; src.height=img.height; src.getContext('2d').drawImage(img,0,0);
+    var sd=src.getContext('2d').getImageData(0,0,img.width,img.height).data, W=img.width, H=img.height;
+    // sample brightness on a polar stereographic grid around the south pole: planar (u,v) -> lat/lon -> equirect pixel
+    var B=new Float32Array(N*N), R0=Math.sin(TH0);
+    for(var y=0;y<N;y++)for(var x=0;x<N;x++){ var px=(x/(N-1))*2-1, pz=(y/(N-1))*2-1, rho=Math.sqrt(px*px+pz*pz); if(rho>1){B[y*N+x]=-1;continue;}
+      var th=Math.asin(rho*R0), lat=-(Math.PI/2-th), lon=Math.atan2(pz,px); var u=(lon+Math.PI)/(2*Math.PI), v=(Math.PI/2-lat)/Math.PI; var ix=Math.min(W-1,u*W|0), iy=Math.min(H-1,v*H|0); var k=(iy*W+ix)*4; B[y*N+x]=(sd[k]*0.299+sd[k+1]*0.587+sd[k+2]*0.114)/255; }
+    // low-pass for a height proxy
+    function blur(a,r){ var o=new Float32Array(a.length); for(var y=0;y<N;y++)for(var x=0;x<N;x++){ var sum=0,n=0; for(var dy=-r;dy<=r;dy+=2)for(var dx=-r;dx<=r;dx+=2){ var xx=x+dx,yy=y+dy; if(xx<0||yy<0||xx>=N||yy>=N) continue; var v=a[yy*N+xx]; if(v<0) continue; sum+=v;n++; } o[y*N+x]=n?sum/n:-1; } return o; }
+    var Hm=blur(B,10); var lo=1,hi=0; for(var q=0;q<B.length;q++){ if(B[q]<0) continue; if(B[q]<lo) lo=B[q]; if(B[q]>hi) hi=B[q]; } function nz(v){ return (v-lo)/Math.max(1e-3,hi-lo); }
+    function ramp(stops){ return function(t){ t=Math.max(0,Math.min(1,t)); var i=Math.min(stops.length-2,Math.floor(t*(stops.length-1))), f=t*(stops.length-1)-i, a=stops[i],b=stops[i+1]; return [a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f,a[2]+(b[2]-a[2])*f]; }; }
+    var cElev=ramp([[27,42,107],[42,157,143],[233,196,106],[244,241,234]]), cLight=ramp([[18,10,42],[106,27,154],[230,81,0],[255,241,118]]);
+    function makeTex(fn){ var c=document.createElement('canvas'); c.width=c.height=N; var g=c.getContext('2d'), id=g.createImageData(N,N), d=id.data;
+      for(var i=0;i<N*N;i++){ var v=B[i]; if(v<0){ d[i*4+3]=0; continue; } var rgb=fn(i,v); d[i*4]=rgb[0]; d[i*4+1]=rgb[1]; d[i*4+2]=rgb[2]; d[i*4+3]=255; }
+      g.putImageData(id,0,0); var t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; t.anisotropy=4; return t; }
+    // elevation: height proxy + hillshade from its gradient
+    var tElev=makeTex(function(i,v){ var h=Hm[i], x=i%N, y=(i/N)|0, hx=(Hm[Math.min(N*N-1,i+2)]-Hm[Math.max(0,i-2)]), hy=(Hm[Math.min(N*N-1,i+2*N)]-Hm[Math.max(0,i-2*N)]); var sh=0.75+1.4*(hx*0.7-hy*0.7); var c=cElev(nz(h)); return [c[0]*sh,c[1]*sh,c[2]*sh]; });
+    var tLight=makeTex(function(i,v){ var l=Math.pow(nz(v),1.6); return cLight(l); });
+    var tCold=makeTex(function(i,v){ var n=nz(v), dark=n<0.33; var g=40+n*110; if(dark){ var k=1-n/0.33; return [30+40*(1-k),120+90*(1-k)*0.5,200+55*k]; } return [g,g,g+6]; });
+    [tElev,tLight,tCold].forEach(function(t){ var cg=new THREE.SphereGeometry(R*1.0012,128,32,0,Math.PI*2,Math.PI-TH0,TH0); var pa=cg.attributes.position, uv=cg.attributes.uv, Rr=R*1.0012*Math.sin(TH0);
+      for(var k=0;k<pa.count;k++){ uv.setXY(k,(pa.getX(k)/Rr+1)/2,(pa.getZ(k)/Rr+1)/2); } uv.needsUpdate=true;
+      var mm=new THREE.Mesh(cg,new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:0,depthWrite:false})); moon.add(mm); dataCaps.push(mm); });
+    dataReady=true; }
+  map.onUpdate=function(){ if(reduce) requestAnimationFrame(frame); };
+  if(map.image&&map.image.width) buildDataCaps(map.image); else { var _ld=setInterval(function(){ if(map.image&&map.image.width){ clearInterval(_ld); buildDataCaps(map.image); } },200); }
+  requestAnimationFrame(frame);
+})();
+
+
+
+/* block-family side list: click a name to jump to that part of the stage */
+(function(){ var sec=$('block'); if(!sec) return; sec.querySelectorAll('#blockSteps span').forEach(function(el,k){ el.style.cursor='pointer'; el.setAttribute('role','link'); el.tabIndex=0;
+  function go(){ var top=sec.getBoundingClientRect().top+scrollY, h=sec.offsetHeight-innerHeight; scrollTo({top:top+h*((k+0.5)/5),behavior:reduce?'auto':'smooth'}); }
+  el.addEventListener('click',go); el.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } }); }); })();
+
+/* ---------- end-effector viewer ---------- */
+if(ok){ (function(){
+  var cv=$('eeGl'); if(!cv) return;
+  var R=new THREE.WebGLRenderer({canvas:cv,antialias:true}); R.setPixelRatio(Math.min(devicePixelRatio,2)); R.outputEncoding=THREE.sRGBEncoding; R.shadowMap.enabled=true; R.shadowMap.type=THREE.PCFSoftShadowMap;
+  var sc=new THREE.Scene(); sc.background=new THREE.Color(0x0e1219);
+  var cam=new THREE.PerspectiveCamera(30,1,0.01,100);
+  var key=new THREE.DirectionalLight(0xffffff,0.9); key.position.set(3,5,2); key.castShadow=true; key.shadow.mapSize.set(2048,2048); key.shadow.camera.left=key.shadow.camera.bottom=-1.2; key.shadow.camera.right=key.shadow.camera.top=1.2; key.shadow.bias=-0.0005; sc.add(key);
+  var fill=new THREE.DirectionalLight(0x9fb4ff,0.35); fill.position.set(-4,2,-3); sc.add(fill); sc.add(new THREE.HemisphereLight(0x3a4150,0x0b0f16,0.9));
+  var floor=new THREE.Mesh(new THREE.PlaneGeometry(40,40),new THREE.ShadowMaterial({opacity:0.4})); floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; sc.add(floor);
+  sc.add(new THREE.GridHelper(40,160,0x2a3140,0x1c222c));
+  // ---- block (Report 02 definition) in metres: 200 mm cube edge, 100 mm thick, step-2 tilt 17.6°
+  var GA=200, GS=GA/Math.SQRT2, GAP=GS*Math.sqrt(3)/2, GD=2*GAP, T=100, TH=17.6, SC=0.001;
+  var AF=GAP*SC, RC=GS*SC, H=T*SC, TOP=H/2, BC=H/2;
+  function sideN(k){ var a=Math.PI/6+k*Math.PI/3, t=TH*Math.PI/180, sg=(k%2?-1:1); return new THREE.Vector3(Math.cos(t)*Math.cos(a),sg*Math.sin(t),Math.cos(t)*Math.sin(a)); }
+  var P=[]; for(var k=0;k<6;k++) P.push([sideN(k),Math.cos(TH*Math.PI/180)*GAP]); P.push([new THREE.Vector3(0,1,0),T/2]); P.push([new THREE.Vector3(0,-1,0),T/2]);
+  var V=[], m3=new THREE.Matrix3(), vv=new THREE.Vector3();
+  for(var i=0;i<P.length;i++)for(var j=i+1;j<P.length;j++)for(var q=j+1;q<P.length;q++){ var a=P[i][0],b=P[j][0],d=P[q][0]; m3.set(a.x,a.y,a.z,b.x,b.y,b.z,d.x,d.y,d.z); if(Math.abs(m3.determinant())<1e-9) continue; vv.set(P[i][1],P[j][1],P[q][1]).applyMatrix3(m3.clone().invert()); if(P.every(function(p){return p[0].dot(vv)<=p[1]+1e-6})&&!V.some(function(w){return w.distanceToSquared(vv)<1e-4})) V.push(vv.clone()); }
+  var bg=new THREE.ConvexGeometry(V.map(function(p){return p.multiplyScalar(SC)}));
+  var pickM=new THREE.MeshStandardMaterial({color:0xC77953,roughness:0.9}), ghostM=new THREE.MeshStandardMaterial({color:0xD9D0C1,roughness:0.9,transparent:true,opacity:0.3,depthWrite:false});
+  var edge=new THREE.EdgesGeometry(bg,20), edgeM=new THREE.LineBasicMaterial({color:0x0B0F16,transparent:true,opacity:0.6});
+  var pick=new THREE.Group(); var pm=new THREE.Mesh(bg,pickM); pm.castShadow=true; pick.add(pm); pick.add(new THREE.LineSegments(edge,edgeM)); pick.position.y=BC; sc.add(pick);
+  var ghosts=[]; [0,1].forEach(function(){ var g=new THREE.Group(); g.add(new THREE.Mesh(bg,ghostM)); g.add(new THREE.LineSegments(edge,edgeM)); g.position.y=BC; sc.add(g); ghosts.push(g); });
+  function placeGhosts(angs){ angs.forEach(function(a,i){ ghosts[i].position.x=Math.cos(a)*GD*SC; ghosts[i].position.z=Math.sin(a)*GD*SC; }); }
+  // ---- features cut into the picked block: real openings (geometry pre-cut with CSG from the same hull), plus their edge lines
+  var BG={"slot":{"p":[-0.01867,0.05,-0.013,-0.04021,0.038,-0.013,0.03733,0.038,-0.013,-0.042,0.05,-0.013,-0.042,0.038,-0.01156,-0.042,0.038,-0.013,-0.042,0.05,-0.013,-0.042,0.05,0.00578,-0.042,0.038,-0.01156,-0.042,0.05,-0.013,-0.042,0.038,-0.013,-0.04021,0.038,-0.013,-0.01867,0.05,-0.013,-0.042,0.05,-0.013,-0.04021,0.038,-0.013,-0.042,0.05,0.00578,-0.042,0.038,0.01244,-0.042,0.038,-0.01156,-0.042,0.05,0.013,-0.042,0.038,0.013,-0.042,0.038,0.01244,-0.042,0.05,0.00578,-0.042,0.05,0.013,-0.042,0.038,0.01244,-0.042,0.05,0.013,-0.03733,0.038,0.013,-0.042,0.038,0.013,-0.042,0.05,0.013,0.01867,0.05,0.013,-0.03733,0.038,0.013,0.01867,0.05,0.013,0.04021,0.038,0.013,-0.03733,0.038,0.013,0.042,0.05,-0.013,0.03733,0.038,-0.013,0.042,0.038,-0.013,0.042,0.05,-0.013,-0.01867,0.05,-0.013,0.03733,0.038,-0.013,0.042,0.05,-0.013,0.042,0.038,-0.013,0.042,0.038,-0.01244,0.042,0.05,-0.00578,0.042,0.05,-0.013,0.042,0.038,-0.01244,0.042,0.05,-0.00578,0.042,0.038,-0.01244,0.042,0.038,0.01156,0.042,0.05,0.013,0.042,0.038,0.01156,0.042,0.038,0.013,0.042,0.05,0.013,0.042,0.05,-0.00578,0.042,0.038,0.01156,0.042,0.05,0.013,0.042,0.038,0.013,0.04021,0.038,0.013,0.01867,0.05,0.013,0.042,0.05,0.013,0.04021,0.038,0.013,0.09286,0.05,0.013,0.042,0.05,0.013,0.042,0.05,0.05984,-0.042,0.05,0.013,0.042,0.05,0.05984,0.042,0.05,0.013,-0.042,0.05,0.013,-0.042,0.05,0.13719,0.042,0.05,0.05984,-0.042,0.05,0.13719,-0.042,0.05,0.013,-0.04211,0.05,0.013,-0.042,0.05,-0.013,-0.04211,0.05,0.013,-0.042,0.05,0.013,-0.042,0.05,-0.013,-0.04214,0.05,-0.013,-0.04211,0.05,0.013,-0.042,0.05,-0.03172,-0.04214,0.05,-0.013,-0.042,0.05,-0.013,-0.042,0.05,-0.03172,-0.042,0.05,-0.013,0.042,0.05,-0.02208,-0.042,0.05,-0.013,0.042,0.05,-0.013,0.042,0.05,-0.02208,0.12109,0.05,-0.013,0.042,0.05,-0.02208,0.042,0.05,-0.013,0.09286,0.05,0.013,0.12109,0.05,-0.013,0.042,0.05,-0.013,0.09286,0.05,0.013,0.042,0.05,-0.013,0.042,0.05,0.00319,0.09286,0.05,0.013,0.042,0.05,0.00319,0.042,0.05,0.013,-0.14142,0.05,-0.03172,-0.04324,0.05,0.13834,-0.042,0.05,-0.03172,-0.14142,-0.05,0.03172,-0.04324,0.05,0.13834,-0.14142,0.05,-0.03172,-0.14142,-0.05,0.03172,-0.14142,0.05,-0.03172,-0.04324,-0.05,-0.13834,-0.14142,-0.05,0.03172,-0.04324,-0.05,-0.13834,0.09818,-0.05,0.10661,-0.09818,-0.05,0.10661,-0.14142,-0.05,0.03172,0.09818,-0.05,0.10661,-0.09818,-0.05,0.10661,0.09818,-0.05,0.10661,-0.04324,0.05,0.13834,0.04324,0.05,0.13834,-0.04324,0.05,0.13834,0.09818,-0.05,0.10661,0.04324,0.05,0.13834,0.09818,-0.05,0.10661,0.14142,0.05,-0.03172,0.14142,-0.05,0.03172,0.14142,0.05,-0.03172,0.09818,-0.05,0.10661,0.14142,-0.05,0.03172,0.09818,-0.05,0.10661,0.04324,-0.05,-0.13834,0.14142,-0.05,0.03172,0.04324,-0.05,-0.13834,0.14142,0.05,-0.03172,0.09818,0.05,-0.10661,0.14142,0.05,-0.03172,0.04324,-0.05,-0.13834,0.09818,0.05,-0.10661,0.04324,-0.05,-0.13834,-0.04324,-0.05,-0.13834,-0.09818,0.05,-0.10661,0.09818,0.05,-0.10661,-0.04324,-0.05,-0.13834,-0.09818,0.05,-0.10661,-0.14142,0.05,-0.03172,0.09818,0.05,-0.10661,0.09818,0.05,-0.10661,-0.14142,0.05,-0.03172,0.14142,0.05,-0.03172,0.04324,0.05,0.13834,0.14142,0.05,-0.03172,-0.04324,0.05,0.13834,0.04324,-0.05,-0.13834,0.09818,-0.05,0.10661,-0.04324,-0.05,-0.13834,-0.09818,0.05,-0.10661,-0.04324,-0.05,-0.13834,-0.14142,0.05,-0.03172,-0.09818,-0.05,0.10661,-0.04324,0.05,0.13834,-0.14142,-0.05,0.03172,0.14142,0.05,-0.03172,-0.042,0.05,-0.03172,0.12109,0.05,-0.013,-0.04324,0.05,0.13834,-0.042,0.05,0.13719,-0.04214,0.05,-0.013,-0.04157,0.038,-0.02778,-0.01946,0.038,-0.013,-0.02432,0.038,-0.013,-0.04157,0.038,-0.02778,-0.02432,0.038,-0.013,-0.0441,0.038,-0.02357,-0.03865,0.038,-0.03172,-0.01584,0.038,-0.013,-0.01946,0.038,-0.013,-0.03865,0.038,-0.03172,-0.01946,0.038,-0.013,-0.04157,0.038,-0.02778,-0.03536,0.038,-0.03536,-0.013,0.038,-0.013,-0.01584,0.038,-0.013,-0.03536,0.038,-0.03536,-0.01584,0.038,-0.013,-0.03865,0.038,-0.03172,-0.03172,0.038,-0.03865,-0.01067,0.038,-0.013,-0.013,0.038,-0.013,-0.03172,0.038,-0.03865,-0.013,0.038,-0.013,-0.03536,0.038,-0.03536,-0.02778,0.038,-0.04157,-0.00869,0.038,-0.013,-0.01067,0.038,-0.013,-0.02778,0.038,-0.04157,-0.01067,0.038,-0.013,-0.03172,0.038,-0.03865,-0.02357,0.038,-0.0441,-0.00695,0.038,-0.013,-0.00869,0.038,-0.013,-0.02357,0.038,-0.0441,-0.00869,0.038,-0.013,-0.02778,0.038,-0.04157,-0.042,0.038,-0.0174,-0.03138,0.038,-0.013,-0.042,0.038,-0.013,-0.042,0.038,-0.01274,-0.04286,0.038,-0.013,-0.042,0.038,-0.013,-0.04619,0.038,-0.01913,-0.042,0.038,-0.0174,-0.04785,0.038,-0.01451,-0.042,0.038,-0.0174,-0.042,0.038,-0.013,-0.04286,0.038,-0.013,-0.042,0.038,-0.0174,-0.04286,0.038,-0.013,-0.04785,0.038,-0.01451,-0.04904,0.038,-0.00975,-0.042,0.038,-0.01274,-0.042,0.038,-0.00835,-0.04785,0.038,-0.01451,-0.042,0.038,-0.01274,-0.04904,0.038,-0.00975,-0.0441,0.038,-0.02357,-0.02432,0.038,-0.013,-0.03138,0.038,-0.013,-0.0441,0.038,-0.02357,-0.03138,0.038,-0.013,-0.04619,0.038,-0.01913,-0.04976,0.038,-0.0049,-0.042,0.038,-0.00835,-0.042,0.038,-0.00414,-0.04904,0.038,-0.00975,-0.042,0.038,-0.00835,-0.04976,0.038,-0.0049,-0.05,0.038,0,-0.042,0.038,-0.00414,-0.042,0.038,0,-0.04976,0.038,-0.0049,-0.042,0.038,-0.00414,-0.05,0.038,0,-0.01913,0.038,-0.04619,-0.00538,0.038,-0.013,-0.00695,0.038,-0.013,-0.01913,0.038,-0.04619,-0.00695,0.038,-0.013,-0.02357,0.038,-0.0441,-0.01451,0.038,-0.04785,-0.00394,0.038,-0.013,-0.00538,0.038,-0.013,-0.01451,0.038,-0.04785,-0.00538,0.038,-0.013,-0.01913,0.038,-0.04619,-0.00975,0.038,-0.04904,-0.00259,0.038,-0.013,-0.00394,0.038,-0.013,-0.00975,0.038,-0.04904,-0.00394,0.038,-0.013,-0.01451,0.038,-0.04785,-0.0049,0.038,-0.04976,-0.00128,0.038,-0.013,-0.00259,0.038,-0.013,-0.0049,0.038,-0.04976,-0.00259,0.038,-0.013,-0.00975,0.038,-0.04904,0,0.038,-0.05,0,0.038,-0.013,-0.00128,0.038,-0.013,0,0.038,-0.05,-0.00128,0.038,-0.013,-0.0049,0.038,-0.04976,-0.05,0.038,0,-0.042,0.038,0,-0.042,0.038,0.00414,-0.05,0.038,0,-0.042,0.038,0.00414,-0.04976,0.038,0.0049,-0.04976,0.038,0.0049,-0.042,0.038,0.00414,-0.042,0.038,0.00835,-0.04976,0.038,0.0049,-0.042,0.038,0.00835,-0.04904,0.038,0.00975,-0.04904,0.038,0.00975,-0.042,0.038,0.00835,-0.042,0.038,0.01274,-0.04904,0.038,0.00975,-0.042,0.038,0.01274,-0.04785,0.038,0.01451,-0.042,0.038,0.0174,-0.042,0.038,0.013,-0.03138,0.038,0.013,-0.042,0.038,0.01274,-0.042,0.038,0.013,-0.04286,0.038,0.013,-0.04785,0.038,0.01451,-0.042,0.038,0.0174,-0.04619,0.038,0.01913,-0.042,0.038,0.0174,-0.04286,0.038,0.013,-0.042,0.038,0.013,-0.04785,0.038,0.01451,-0.04286,0.038,0.013,-0.042,0.038,0.0174,-0.0441,0.038,0.02357,-0.03138,0.038,0.013,-0.02432,0.038,0.013,-0.04619,0.038,0.01913,-0.03138,0.038,0.013,-0.0441,0.038,0.02357,-0.04157,0.038,0.02778,-0.02432,0.038,0.013,-0.01946,0.038,0.013,-0.0441,0.038,0.02357,-0.02432,0.038,0.013,-0.04157,0.038,0.02778,-0.03865,0.038,0.03172,-0.01946,0.038,0.013,-0.01584,0.038,0.013,-0.04157,0.038,0.02778,-0.01946,0.038,0.013,-0.03865,0.038,0.03172,-0.03536,0.038,0.03536,-0.01584,0.038,0.013,-0.013,0.038,0.013,-0.03865,0.038,0.03172,-0.01584,0.038,0.013,-0.03536,0.038,0.03536,-0.03172,0.038,0.03865,-0.013,0.038,0.013,-0.01067,0.038,0.013,-0.03536,0.038,0.03536,-0.013,0.038,0.013,-0.03172,0.038,0.03865,-0.02778,0.038,0.04157,-0.01067,0.038,0.013,-0.00869,0.038,0.013,-0.03172,0.038,0.03865,-0.01067,0.038,0.013,-0.02778,0.038,0.04157,-0.02357,0.038,0.0441,-0.00869,0.038,0.013,-0.00695,0.038,0.013,-0.02778,0.038,0.04157,-0.00869,0.038,0.013,-0.02357,0.038,0.0441,-0.01913,0.038,0.04619,-0.00695,0.038,0.013,-0.00538,0.038,0.013,-0.02357,0.038,0.0441,-0.00695,0.038,0.013,-0.01913,0.038,0.04619,-0.01451,0.038,0.04785,-0.00538,0.038,0.013,-0.00394,0.038,0.013,-0.01913,0.038,0.04619,-0.00538,0.038,0.013,-0.01451,0.038,0.04785,-0.00975,0.038,0.04904,-0.00394,0.038,0.013,-0.00259,0.038,0.013,-0.01451,0.038,0.04785,-0.00394,0.038,0.013,-0.00975,0.038,0.04904,-0.0049,0.038,0.04976,-0.00259,0.038,0.013,-0.00128,0.038,0.013,-0.00975,0.038,0.04904,-0.00259,0.038,0.013,-0.0049,0.038,0.04976,0,0.038,0.05,-0.00128,0.038,0.013,0,0.038,0.013,-0.0049,0.038,0.04976,-0.00128,0.038,0.013,0,0.038,0.05,0,0.038,-0.05,0.00128,0.038,-0.013,0,0.038,-0.013,0.0049,0.038,-0.04976,0.00128,0.038,-0.013,0,0.038,-0.05,0.0049,0.038,-0.04976,0.00259,0.038,-0.013,0.00128,0.038,-0.013,0.00975,0.038,-0.04904,0.00259,0.038,-0.013,0.0049,0.038,-0.04976,0.00975,0.038,-0.04904,0.00394,0.038,-0.013,0.00259,0.038,-0.013,0.01451,0.038,-0.04785,0.00394,0.038,-0.013,0.00975,0.038,-0.04904,0.01451,0.038,-0.04785,0.00538,0.038,-0.013,0.00394,0.038,-0.013,0.01913,0.038,-0.04619,0.00538,0.038,-0.013,0.01451,0.038,-0.04785,0.01913,0.038,-0.04619,0.00695,0.038,-0.013,0.00538,0.038,-0.013,0.02357,0.038,-0.0441,0.00695,0.038,-0.013,0.01913,0.038,-0.04619,0.02357,0.038,-0.0441,0.00869,0.038,-0.013,0.00695,0.038,-0.013,0.02778,0.038,-0.04157,0.00869,0.038,-0.013,0.02357,0.038,-0.0441,0.02778,0.038,-0.04157,0.01067,0.038,-0.013,0.00869,0.038,-0.013,0.03172,0.038,-0.03865,0.01067,0.038,-0.013,0.02778,0.038,-0.04157,0.03172,0.038,-0.03865,0.013,0.038,-0.013,0.01067,0.038,-0.013,0.03536,0.038,-0.03536,0.013,0.038,-0.013,0.03172,0.038,-0.03865,0.03536,0.038,-0.03536,0.01584,0.038,-0.013,0.013,0.038,-0.013,0.03865,0.038,-0.03172,0.01584,0.038,-0.013,0.03536,0.038,-0.03536,0.03865,0.038,-0.03172,0.01946,0.038,-0.013,0.01584,0.038,-0.013,0.04157,0.038,-0.02778,0.01946,0.038,-0.013,0.03865,0.038,-0.03172,0.04157,0.038,-0.02778,0.02432,0.038,-0.013,0.01946,0.038,-0.013,0.0441,0.038,-0.02357,0.02432,0.038,-0.013,0.04157,0.038,-0.02778,0.0441,0.038,-0.02357,0.03138,0.038,-0.013,0.02432,0.038,-0.013,0.04619,0.038,-0.01913,0.03138,0.038,-0.013,0.0441,0.038,-0.02357,0.04286,0.038,-0.013,0.042,0.038,-0.01274,0.042,0.038,-0.013,0.03138,0.038,-0.013,0.042,0.038,-0.0174,0.042,0.038,-0.013,0.04785,0.038,-0.01451,0.04286,0.038,-0.013,0.04619,0.038,-0.01913,0.04286,0.038,-0.013,0.042,0.038,-0.013,0.042,0.038,-0.0174,0.04286,0.038,-0.013,0.042,0.038,-0.0174,0.04619,0.038,-0.01913,0.04904,0.038,-0.00975,0.042,0.038,-0.00835,0.042,0.038,-0.01274,0.04904,0.038,-0.00975,0.042,0.038,-0.01274,0.04785,0.038,-0.01451,0.04976,0.038,-0.0049,0.042,0.038,-0.00414,0.042,0.038,-0.00835,0.04976,0.038,-0.0049,0.042,0.038,-0.00835,0.04904,0.038,-0.00975,0.05,0.038,0,0.042,0.038,0,0.042,0.038,-0.00414,0.05,0.038,0,0.042,0.038,-0.00414,0.04976,0.038,-0.0049,0,0.038,0.05,0,0.038,0.013,0.00128,0.038,0.013,0,0.038,0.05,0.00128,0.038,0.013,0.0049,0.038,0.04976,0.0049,0.038,0.04976,0.00128,0.038,0.013,0.00259,0.038,0.013,0.0049,0.038,0.04976,0.00259,0.038,0.013,0.00975,0.038,0.04904,0.00975,0.038,0.04904,0.00259,0.038,0.013,0.00394,0.038,0.013,0.00975,0.038,0.04904,0.00394,0.038,0.013,0.01451,0.038,0.04785,0.01451,0.038,0.04785,0.00394,0.038,0.013,0.00538,0.038,0.013,0.01451,0.038,0.04785,0.00538,0.038,0.013,0.01913,0.038,0.04619,0.01913,0.038,0.04619,0.00538,0.038,0.013,0.00695,0.038,0.013,0.01913,0.038,0.04619,0.00695,0.038,0.013,0.02357,0.038,0.0441,0.05,0.038,0,0.042,0.038,0.00414,0.042,0.038,0,0.04976,0.038,0.0049,0.042,0.038,0.00414,0.05,0.038,0,0.04976,0.038,0.0049,0.042,0.038,0.00835,0.042,0.038,0.00414,0.04904,0.038,0.00975,0.042,0.038,0.00835,0.04976,0.038,0.0049,0.04286,0.038,0.013,0.042,0.038,0.013,0.042,0.038,0.01274,0.03138,0.038,0.013,0.042,0.038,0.013,0.042,0.038,0.0174,0.04619,0.038,0.01913,0.04286,0.038,0.013,0.04785,0.038,0.01451,0.04286,0.038,0.013,0.042,0.038,0.0174,0.042,0.038,0.013,0.04619,0.038,0.01913,0.042,0.038,0.0174,0.04286,0.038,0.013,0.0441,0.038,0.02357,0.02432,0.038,0.013,0.03138,0.038,0.013,0.0441,0.038,0.02357,0.03138,0.038,0.013,0.04619,0.038,0.01913,0.04904,0.038,0.00975,0.042,0.038,0.01274,0.042,0.038,0.00835,0.04785,0.038,0.01451,0.042,0.038,0.01274,0.04904,0.038,0.00975,0.02357,0.038,0.0441,0.00695,0.038,0.013,0.00869,0.038,0.013,0.02357,0.038,0.0441,0.00869,0.038,0.013,0.02778,0.038,0.04157,0.02778,0.038,0.04157,0.00869,0.038,0.013,0.01067,0.038,0.013,0.02778,0.038,0.04157,0.01067,0.038,0.013,0.03172,0.038,0.03865,0.03172,0.038,0.03865,0.01067,0.038,0.013,0.013,0.038,0.013,0.03172,0.038,0.03865,0.013,0.038,0.013,0.03536,0.038,0.03536,0.03536,0.038,0.03536,0.013,0.038,0.013,0.01584,0.038,0.013,0.03536,0.038,0.03536,0.01584,0.038,0.013,0.03865,0.038,0.03172,0.03865,0.038,0.03172,0.01584,0.038,0.013,0.01946,0.038,0.013,0.03865,0.038,0.03172,0.01946,0.038,0.013,0.04157,0.038,0.02778,0.04157,0.038,0.02778,0.01946,0.038,0.013,0.02432,0.038,0.013,0.04157,0.038,0.02778,0.02432,0.038,0.013,0.0441,0.038,0.02357,0,0.038,0.05,0.0049,0.038,0.04976,0,0.004,0.05,0,0.004,0.05,0.0049,0.038,0.04976,0.0049,0.004,0.04976,0.0049,0.038,0.04976,0.00975,0.038,0.04904,0.0049,0.004,0.04976,0.0049,0.004,0.04976,0.00975,0.038,0.04904,0.00975,0.004,0.04904,0.00975,0.038,0.04904,0.01451,0.038,0.04785,0.00975,0.004,0.04904,0.00975,0.004,0.04904,0.01451,0.038,0.04785,0.01451,0.004,0.04785,0.01451,0.038,0.04785,0.01913,0.038,0.04619,0.01451,0.004,0.04785,0.01451,0.004,0.04785,0.01913,0.038,0.04619,0.01913,0.004,0.04619,0.01913,0.038,0.04619,0.02357,0.038,0.0441,0.01913,0.004,0.04619,0.01913,0.004,0.04619,0.02357,0.038,0.0441,0.02357,0.004,0.0441,0.02357,0.038,0.0441,0.02778,0.038,0.04157,0.02357,0.004,0.0441,0.02357,0.004,0.0441,0.02778,0.038,0.04157,0.02778,0.004,0.04157,0.02778,0.038,0.04157,0.03172,0.038,0.03865,0.02778,0.004,0.04157,0.02778,0.004,0.04157,0.03172,0.038,0.03865,0.03172,0.004,0.03865,0.03172,0.038,0.03865,0.03536,0.038,0.03536,0.03172,0.004,0.03865,0.03172,0.004,0.03865,0.03536,0.038,0.03536,0.03536,0.004,0.03536,0.03536,0.038,0.03536,0.03865,0.038,0.03172,0.03536,0.004,0.03536,0.03536,0.004,0.03536,0.03865,0.038,0.03172,0.03865,0.004,0.03172,0.03865,0.038,0.03172,0.04157,0.038,0.02778,0.03865,0.004,0.03172,0.03865,0.004,0.03172,0.04157,0.038,0.02778,0.04157,0.004,0.02778,0.04157,0.038,0.02778,0.0441,0.038,0.02357,0.04157,0.004,0.02778,0.04157,0.004,0.02778,0.0441,0.038,0.02357,0.0441,0.004,0.02357,0.0441,0.038,0.02357,0.04619,0.038,0.01913,0.0441,0.004,0.02357,0.0441,0.004,0.02357,0.04619,0.038,0.01913,0.04619,0.004,0.01913,0.04619,0.038,0.01913,0.04785,0.038,0.01451,0.04619,0.004,0.01913,0.04619,0.004,0.01913,0.04785,0.038,0.01451,0.04785,0.004,0.01451,0.04785,0.038,0.01451,0.04904,0.038,0.00975,0.04785,0.004,0.01451,0.04785,0.004,0.01451,0.04904,0.038,0.00975,0.04904,0.004,0.00975,0.04904,0.038,0.00975,0.04976,0.038,0.0049,0.04904,0.004,0.00975,0.04904,0.004,0.00975,0.04976,0.038,0.0049,0.04976,0.004,0.0049,0.04976,0.038,0.0049,0.05,0.038,0,0.04976,0.004,0.0049,0.04976,0.004,0.0049,0.05,0.038,0,0.05,0.004,0,0.05,0.038,0,0.04976,0.038,-0.0049,0.05,0.004,0,0.05,0.004,0,0.04976,0.038,-0.0049,0.04976,0.004,-0.0049,0.04976,0.038,-0.0049,0.04904,0.038,-0.00975,0.04976,0.004,-0.0049,0.04976,0.004,-0.0049,0.04904,0.038,-0.00975,0.04904,0.004,-0.00975,0.04904,0.038,-0.00975,0.04785,0.038,-0.01451,0.04904,0.004,-0.00975,0.04904,0.004,-0.00975,0.04785,0.038,-0.01451,0.04785,0.004,-0.01451,0.04785,0.038,-0.01451,0.04619,0.038,-0.01913,0.04785,0.004,-0.01451,0.04785,0.004,-0.01451,0.04619,0.038,-0.01913,0.04619,0.004,-0.01913,0.04619,0.038,-0.01913,0.0441,0.038,-0.02357,0.04619,0.004,-0.01913,0.04619,0.004,-0.01913,0.0441,0.038,-0.02357,0.0441,0.004,-0.02357,0.0441,0.038,-0.02357,0.04157,0.038,-0.02778,0.0441,0.004,-0.02357,0.0441,0.004,-0.02357,0.04157,0.038,-0.02778,0.04157,0.004,-0.02778,0.04157,0.038,-0.02778,0.03865,0.038,-0.03172,0.04157,0.004,-0.02778,0.04157,0.004,-0.02778,0.03865,0.038,-0.03172,0.03865,0.004,-0.03172,0.03865,0.038,-0.03172,0.03536,0.038,-0.03536,0.03865,0.004,-0.03172,0.03865,0.004,-0.03172,0.03536,0.038,-0.03536,0.03536,0.004,-0.03536,0.03536,0.038,-0.03536,0.03172,0.038,-0.03865,0.03536,0.004,-0.03536,0.03536,0.004,-0.03536,0.03172,0.038,-0.03865,0.03172,0.004,-0.03865,0.03172,0.038,-0.03865,0.02778,0.038,-0.04157,0.03172,0.004,-0.03865,0.03172,0.004,-0.03865,0.02778,0.038,-0.04157,0.02778,0.004,-0.04157,0.02778,0.038,-0.04157,0.02357,0.038,-0.0441,0.02778,0.004,-0.04157,0.02778,0.004,-0.04157,0.02357,0.038,-0.0441,0.02357,0.004,-0.0441,0.02357,0.038,-0.0441,0.01913,0.038,-0.04619,0.02357,0.004,-0.0441,0.02357,0.004,-0.0441,0.01913,0.038,-0.04619,0.01913,0.004,-0.04619,0.01913,0.038,-0.04619,0.01451,0.038,-0.04785,0.01913,0.004,-0.04619,0.01913,0.004,-0.04619,0.01451,0.038,-0.04785,0.01451,0.004,-0.04785,0.01451,0.038,-0.04785,0.00975,0.038,-0.04904,0.01451,0.004,-0.04785,0.01451,0.004,-0.04785,0.00975,0.038,-0.04904,0.00975,0.004,-0.04904,0.00975,0.038,-0.04904,0.0049,0.038,-0.04976,0.00975,0.004,-0.04904,0.00975,0.004,-0.04904,0.0049,0.038,-0.04976,0.0049,0.004,-0.04976,0.0049,0.038,-0.04976,0,0.038,-0.05,0.0049,0.004,-0.04976,0.0049,0.004,-0.04976,0,0.038,-0.05,0,0.004,-0.05,0,0.038,-0.05,-0.0049,0.038,-0.04976,0,0.004,-0.05,0,0.004,-0.05,-0.0049,0.038,-0.04976,-0.0049,0.004,-0.04976,-0.0049,0.038,-0.04976,-0.00975,0.038,-0.04904,-0.0049,0.004,-0.04976,-0.0049,0.004,-0.04976,-0.00975,0.038,-0.04904,-0.00975,0.004,-0.04904,-0.00975,0.038,-0.04904,-0.01451,0.038,-0.04785,-0.00975,0.004,-0.04904,-0.00975,0.004,-0.04904,-0.01451,0.038,-0.04785,-0.01451,0.004,-0.04785,-0.01451,0.038,-0.04785,-0.01913,0.038,-0.04619,-0.01451,0.004,-0.04785,-0.01451,0.004,-0.04785,-0.01913,0.038,-0.04619,-0.01913,0.004,-0.04619,-0.01913,0.038,-0.04619,-0.02357,0.038,-0.0441,-0.01913,0.004,-0.04619,-0.01913,0.004,-0.04619,-0.02357,0.038,-0.0441,-0.02357,0.004,-0.0441,-0.02357,0.038,-0.0441,-0.02778,0.038,-0.04157,-0.02357,0.004,-0.0441,-0.02357,0.004,-0.0441,-0.02778,0.038,-0.04157,-0.02778,0.004,-0.04157,-0.02778,0.038,-0.04157,-0.03172,0.038,-0.03865,-0.02778,0.004,-0.04157,-0.02778,0.004,-0.04157,-0.03172,0.038,-0.03865,-0.03172,0.004,-0.03865,-0.03172,0.038,-0.03865,-0.03536,0.038,-0.03536,-0.03172,0.004,-0.03865,-0.03172,0.004,-0.03865,-0.03536,0.038,-0.03536,-0.03536,0.004,-0.03536,-0.03536,0.038,-0.03536,-0.03865,0.038,-0.03172,-0.03536,0.004,-0.03536,-0.03536,0.004,-0.03536,-0.03865,0.038,-0.03172,-0.03865,0.004,-0.03172,-0.03865,0.038,-0.03172,-0.04157,0.038,-0.02778,-0.03865,0.004,-0.03172,-0.03865,0.004,-0.03172,-0.04157,0.038,-0.02778,-0.04157,0.004,-0.02778,-0.04157,0.038,-0.02778,-0.0441,0.038,-0.02357,-0.04157,0.004,-0.02778,-0.04157,0.004,-0.02778,-0.0441,0.038,-0.02357,-0.0441,0.004,-0.02357,-0.0441,0.038,-0.02357,-0.04619,0.038,-0.01913,-0.0441,0.004,-0.02357,-0.0441,0.004,-0.02357,-0.04619,0.038,-0.01913,-0.04619,0.004,-0.01913,-0.04619,0.038,-0.01913,-0.04785,0.038,-0.01451,-0.04619,0.004,-0.01913,-0.04619,0.004,-0.01913,-0.04785,0.038,-0.01451,-0.04785,0.004,-0.01451,-0.04785,0.038,-0.01451,-0.04904,0.038,-0.00975,-0.04785,0.004,-0.01451,-0.04785,0.004,-0.01451,-0.04904,0.038,-0.00975,-0.04904,0.004,-0.00975,-0.04904,0.038,-0.00975,-0.04976,0.038,-0.0049,-0.04904,0.004,-0.00975,-0.04904,0.004,-0.00975,-0.04976,0.038,-0.0049,-0.04976,0.004,-0.0049,-0.04976,0.038,-0.0049,-0.05,0.038,0,-0.04976,0.004,-0.0049,-0.04976,0.004,-0.0049,-0.05,0.038,0,-0.05,0.004,0,-0.05,0.038,0,-0.04976,0.038,0.0049,-0.05,0.004,0,-0.05,0.004,0,-0.04976,0.038,0.0049,-0.04976,0.004,0.0049,-0.04976,0.038,0.0049,-0.04904,0.038,0.00975,-0.04976,0.004,0.0049,-0.04976,0.004,0.0049,-0.04904,0.038,0.00975,-0.04904,0.004,0.00975,-0.04904,0.038,0.00975,-0.04785,0.038,0.01451,-0.04904,0.004,0.00975,-0.04904,0.004,0.00975,-0.04785,0.038,0.01451,-0.04785,0.004,0.01451,-0.04785,0.038,0.01451,-0.04619,0.038,0.01913,-0.04785,0.004,0.01451,-0.04785,0.004,0.01451,-0.04619,0.038,0.01913,-0.04619,0.004,0.01913,-0.04619,0.038,0.01913,-0.0441,0.038,0.02357,-0.04619,0.004,0.01913,-0.04619,0.004,0.01913,-0.0441,0.038,0.02357,-0.0441,0.004,0.02357,-0.0441,0.038,0.02357,-0.04157,0.038,0.02778,-0.0441,0.004,0.02357,-0.0441,0.004,0.02357,-0.04157,0.038,0.02778,-0.04157,0.004,0.02778,-0.04157,0.038,0.02778,-0.03865,0.038,0.03172,-0.04157,0.004,0.02778,-0.04157,0.004,0.02778,-0.03865,0.038,0.03172,-0.03865,0.004,0.03172,-0.03865,0.038,0.03172,-0.03536,0.038,0.03536,-0.03865,0.004,0.03172,-0.03865,0.004,0.03172,-0.03536,0.038,0.03536,-0.03536,0.004,0.03536,-0.03536,0.038,0.03536,-0.03172,0.038,0.03865,-0.03536,0.004,0.03536,-0.03536,0.004,0.03536,-0.03172,0.038,0.03865,-0.03172,0.004,0.03865,-0.03172,0.038,0.03865,-0.02778,0.038,0.04157,-0.03172,0.004,0.03865,-0.03172,0.004,0.03865,-0.02778,0.038,0.04157,-0.02778,0.004,0.04157,-0.02778,0.038,0.04157,-0.02357,0.038,0.0441,-0.02778,0.004,0.04157,-0.02778,0.004,0.04157,-0.02357,0.038,0.0441,-0.02357,0.004,0.0441,-0.02357,0.038,0.0441,-0.01913,0.038,0.04619,-0.02357,0.004,0.0441,-0.02357,0.004,0.0441,-0.01913,0.038,0.04619,-0.01913,0.004,0.04619,-0.01913,0.038,0.04619,-0.01451,0.038,0.04785,-0.01913,0.004,0.04619,-0.01913,0.004,0.04619,-0.01451,0.038,0.04785,-0.01451,0.004,0.04785,-0.01451,0.038,0.04785,-0.00975,0.038,0.04904,-0.01451,0.004,0.04785,-0.01451,0.004,0.04785,-0.00975,0.038,0.04904,-0.00975,0.004,0.04904,-0.00975,0.038,0.04904,-0.0049,0.038,0.04976,-0.00975,0.004,0.04904,-0.00975,0.004,0.04904,-0.0049,0.038,0.04976,-0.0049,0.004,0.04976,-0.0049,0.038,0.04976,0,0.038,0.05,-0.0049,0.004,0.04976,-0.0049,0.004,0.04976,0,0.004,0,-0.00975,0.004,0.04904,0,0.004,0.05,0,0.004,0,-0.0049,0.004,0.04976,-0.00975,0.004,0.04904,0,0.004,0,-0.01451,0.004,0.04785,-0.01451,0.004,0.04785,0,0.004,0,-0.01913,0.004,0.04619,-0.01913,0.004,0.04619,0,0.004,0,-0.02357,0.004,0.0441,-0.02357,0.004,0.0441,0,0.004,0,-0.02778,0.004,0.04157,-0.02778,0.004,0.04157,0,0.004,0,-0.03172,0.004,0.03865,-0.03172,0.004,0.03865,0,0.004,0,-0.03536,0.004,0.03536,-0.03536,0.004,0.03536,0,0.004,0,-0.03865,0.004,0.03172,-0.03865,0.004,0.03172,0,0.004,0,-0.04157,0.004,0.02778,-0.04157,0.004,0.02778,0,0.004,0,-0.0441,0.004,0.02357,-0.0441,0.004,0.02357,0,0.004,0,-0.04619,0.004,0.01913,-0.04619,0.004,0.01913,0,0.004,0,-0.04785,0.004,0.01451,-0.04785,0.004,0.01451,0,0.004,0,-0.04904,0.004,0.00975,-0.04904,0.004,0.00975,0,0.004,0,-0.04976,0.004,0.0049,-0.04976,0.004,0.0049,0,0.004,0,-0.05,0.004,0,-0.05,0.004,0,0,0.004,0,-0.04976,0.004,-0.0049,-0.04976,0.004,-0.0049,0,0.004,0,-0.04904,0.004,-0.00975,-0.04904,0.004,-0.00975,0,0.004,0,-0.04785,0.004,-0.01451,-0.04785,0.004,-0.01451,0,0.004,0,-0.04619,0.004,-0.01913,-0.04619,0.004,-0.01913,0,0.004,0,-0.0441,0.004,-0.02357,-0.0441,0.004,-0.02357,0,0.004,0,-0.04157,0.004,-0.02778,-0.04157,0.004,-0.02778,0,0.004,0,-0.03865,0.004,-0.03172,-0.03865,0.004,-0.03172,0,0.004,0,-0.03536,0.004,-0.03536,-0.03536,0.004,-0.03536,0,0.004,0,-0.03172,0.004,-0.03865,-0.03172,0.004,-0.03865,0,0.004,0,-0.02778,0.004,-0.04157,-0.02778,0.004,-0.04157,0,0.004,0,-0.02357,0.004,-0.0441,-0.02357,0.004,-0.0441,0,0.004,0,-0.01913,0.004,-0.04619,-0.01913,0.004,-0.04619,0,0.004,0,-0.01451,0.004,-0.04785,-0.01451,0.004,-0.04785,0,0.004,0,-0.00975,0.004,-0.04904,-0.00975,0.004,-0.04904,0,0.004,0,-0.0049,0.004,-0.04976,-0.0049,0.004,-0.04976,0,0.004,0,0,0.004,-0.05,0,0.004,-0.05,0,0.004,0,0.0049,0.004,-0.04976,0.0049,0.004,-0.04976,0,0.004,0,0.00975,0.004,-0.04904,0.00975,0.004,-0.04904,0,0.004,0,0.01451,0.004,-0.04785,0.01451,0.004,-0.04785,0,0.004,0,0.01913,0.004,-0.04619,0.01913,0.004,-0.04619,0,0.004,0,0.02357,0.004,-0.0441,0.02357,0.004,-0.0441,0,0.004,0,0.02778,0.004,-0.04157,0.02778,0.004,-0.04157,0,0.004,0,0.03172,0.004,-0.03865,0.03172,0.004,-0.03865,0,0.004,0,0.03536,0.004,-0.03536,0.03536,0.004,-0.03536,0,0.004,0,0.03865,0.004,-0.03172,0.03865,0.004,-0.03172,0,0.004,0,0.04157,0.004,-0.02778,0.04157,0.004,-0.02778,0,0.004,0,0.0441,0.004,-0.02357,0.0441,0.004,-0.02357,0,0.004,0,0.04619,0.004,-0.01913,0.04619,0.004,-0.01913,0,0.004,0,0.04785,0.004,-0.01451,0.04785,0.004,-0.01451,0,0.004,0,0.04904,0.004,-0.00975,0.04904,0.004,-0.00975,0,0.004,0,0.04976,0.004,-0.0049,0.04976,0.004,-0.0049,0,0.004,0,0.05,0.004,0,0.05,0.004,0,0,0.004,0,0.04976,0.004,0.0049,0.04976,0.004,0.0049,0,0.004,0,0.04904,0.004,0.00975,0.04904,0.004,0.00975,0,0.004,0,0.04785,0.004,0.01451,0.04785,0.004,0.01451,0,0.004,0,0.04619,0.004,0.01913,0.04619,0.004,0.01913,0,0.004,0,0.0441,0.004,0.02357,0.0441,0.004,0.02357,0,0.004,0,0.04157,0.004,0.02778,0.04157,0.004,0.02778,0,0.004,0,0.03865,0.004,0.03172,0.03865,0.004,0.03172,0,0.004,0,0.03536,0.004,0.03536,0.03536,0.004,0.03536,0,0.004,0,0.03172,0.004,0.03865,0.03172,0.004,0.03865,0,0.004,0,0.02778,0.004,0.04157,0.02778,0.004,0.04157,0,0.004,0,0.02357,0.004,0.0441,0.02357,0.004,0.0441,0,0.004,0,0.01913,0.004,0.04619,0.01913,0.004,0.04619,0,0.004,0,0.01451,0.004,0.04785,0.01451,0.004,0.04785,0,0.004,0,0.00975,0.004,0.04904,0.00975,0.004,0.04904,0,0.004,0,0.0049,0.004,0.04976,0.0049,0.004,0.04976,0,0.004,0,0,0.004,0.05,-0.0049,0.004,0.04976,0,0.038,0.05,0,0.004,0.05],"n":[0,0,1,0,0,1,0,0,1,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,-0.825,0.302,0.477,-0.825,0.302,0.477,-0.825,0.302,0.477,-0.825,-0.302,-0.477,-0.825,-0.302,-0.477,-0.825,-0.302,-0.477,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-0.302,0.953,0,-0.302,0.953,0,-0.302,0.953,0,-0.302,0.953,0,-0.302,0.953,0,-0.302,0.953,0.825,0.302,0.477,0.825,0.302,0.477,0.825,0.302,0.477,0.825,0.302,0.477,0.825,0.302,0.477,0.825,0.302,0.477,0,-1,0,0,-1,0,0,-1,0,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,-1,0,0,-1,0,0,-1,0,-0.825,-0.302,-0.477,-0.825,-0.302,-0.477,-0.825,-0.302,-0.477,-0.825,0.302,0.477,-0.825,0.302,0.477,-0.825,0.302,0.477,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,0,-1,-0.098,0,-0.995,0,0,-1,0,0,-1,-0.098,0,-0.995,-0.098,0,-0.995,-0.098,0,-0.995,-0.195,0,-0.981,-0.098,0,-0.995,-0.098,0,-0.995,-0.195,0,-0.981,-0.195,0,-0.981,-0.195,0,-0.981,-0.29,0,-0.957,-0.195,0,-0.981,-0.195,0,-0.981,-0.29,0,-0.957,-0.29,0,-0.957,-0.29,0,-0.957,-0.383,0,-0.924,-0.29,0,-0.957,-0.29,0,-0.957,-0.383,0,-0.924,-0.383,0,-0.924,-0.383,0,-0.924,-0.471,0,-0.882,-0.383,0,-0.924,-0.383,0,-0.924,-0.471,0,-0.882,-0.471,0,-0.882,-0.471,0,-0.882,-0.556,0,-0.831,-0.471,0,-0.882,-0.471,0,-0.882,-0.556,0,-0.831,-0.556,0,-0.831,-0.556,0,-0.831,-0.634,0,-0.773,-0.556,0,-0.831,-0.556,0,-0.831,-0.634,0,-0.773,-0.634,0,-0.773,-0.634,0,-0.773,-0.707,0,-0.707,-0.634,0,-0.773,-0.634,0,-0.773,-0.707,0,-0.707,-0.707,0,-0.707,-0.707,0,-0.707,-0.773,0,-0.634,-0.707,0,-0.707,-0.707,0,-0.707,-0.773,0,-0.634,-0.773,0,-0.634,-0.773,0,-0.634,-0.831,0,-0.556,-0.773,0,-0.634,-0.773,0,-0.634,-0.831,0,-0.556,-0.831,0,-0.556,-0.831,0,-0.556,-0.882,0,-0.471,-0.831,0,-0.556,-0.831,0,-0.556,-0.882,0,-0.471,-0.882,0,-0.471,-0.882,0,-0.471,-0.924,0,-0.383,-0.882,0,-0.471,-0.882,0,-0.471,-0.924,0,-0.383,-0.924,0,-0.383,-0.924,0,-0.383,-0.957,0,-0.29,-0.924,0,-0.383,-0.924,0,-0.383,-0.957,0,-0.29,-0.957,0,-0.29,-0.957,0,-0.29,-0.981,0,-0.195,-0.957,0,-0.29,-0.957,0,-0.29,-0.981,0,-0.195,-0.981,0,-0.195,-0.981,0,-0.195,-0.995,0,-0.098,-0.981,0,-0.195,-0.981,0,-0.195,-0.995,0,-0.098,-0.995,0,-0.098,-0.995,0,-0.098,-1,0,0,-0.995,0,-0.098,-0.995,0,-0.098,-1,0,0,-1,0,0,-1,0,0,-0.995,0,0.098,-1,0,0,-1,0,0,-0.995,0,0.098,-0.995,0,0.098,-0.995,0,0.098,-0.981,0,0.195,-0.995,0,0.098,-0.995,0,0.098,-0.981,0,0.195,-0.981,0,0.195,-0.981,0,0.195,-0.957,0,0.29,-0.981,0,0.195,-0.981,0,0.195,-0.957,0,0.29,-0.957,0,0.29,-0.957,0,0.29,-0.924,0,0.383,-0.957,0,0.29,-0.957,0,0.29,-0.924,0,0.383,-0.924,0,0.383,-0.924,0,0.383,-0.882,0,0.471,-0.924,0,0.383,-0.924,0,0.383,-0.882,0,0.471,-0.882,0,0.471,-0.882,0,0.471,-0.831,0,0.556,-0.882,0,0.471,-0.882,0,0.471,-0.831,0,0.556,-0.831,0,0.556,-0.831,0,0.556,-0.773,0,0.634,-0.831,0,0.556,-0.831,0,0.556,-0.773,0,0.634,-0.773,0,0.634,-0.773,0,0.634,-0.707,0,0.707,-0.773,0,0.634,-0.773,0,0.634,-0.707,0,0.707,-0.707,0,0.707,-0.707,0,0.707,-0.634,0,0.773,-0.707,0,0.707,-0.707,0,0.707,-0.634,0,0.773,-0.634,0,0.773,-0.634,0,0.773,-0.556,0,0.831,-0.634,0,0.773,-0.634,0,0.773,-0.556,0,0.831,-0.556,0,0.831,-0.556,0,0.831,-0.471,0,0.882,-0.556,0,0.831,-0.556,0,0.831,-0.471,0,0.882,-0.471,0,0.882,-0.471,0,0.882,-0.383,0,0.924,-0.471,0,0.882,-0.471,0,0.882,-0.383,0,0.924,-0.383,0,0.924,-0.383,0,0.924,-0.29,0,0.957,-0.383,0,0.924,-0.383,0,0.924,-0.29,0,0.957,-0.29,0,0.957,-0.29,0,0.957,-0.195,0,0.981,-0.29,0,0.957,-0.29,0,0.957,-0.195,0,0.981,-0.195,0,0.981,-0.195,0,0.981,-0.098,0,0.995,-0.195,0,0.981,-0.195,0,0.981,-0.098,0,0.995,-0.098,0,0.995,-0.098,0,0.995,0,0,1,-0.098,0,0.995,-0.098,0,0.995,0,0,1,0,0,1,0,0,1,0.098,0,0.995,0,0,1,0,0,1,0.098,0,0.995,0.098,0,0.995,0.098,0,0.995,0.195,0,0.981,0.098,0,0.995,0.098,0,0.995,0.195,0,0.981,0.195,0,0.981,0.195,0,0.981,0.29,0,0.957,0.195,0,0.981,0.195,0,0.981,0.29,0,0.957,0.29,0,0.957,0.29,0,0.957,0.383,0,0.924,0.29,0,0.957,0.29,0,0.957,0.383,0,0.924,0.383,0,0.924,0.383,0,0.924,0.471,0,0.882,0.383,0,0.924,0.383,0,0.924,0.471,0,0.882,0.471,0,0.882,0.471,0,0.882,0.556,0,0.831,0.471,0,0.882,0.471,0,0.882,0.556,0,0.831,0.556,0,0.831,0.556,0,0.831,0.634,0,0.773,0.556,0,0.831,0.556,0,0.831,0.634,0,0.773,0.634,0,0.773,0.634,0,0.773,0.707,0,0.707,0.634,0,0.773,0.634,0,0.773,0.707,0,0.707,0.707,0,0.707,0.707,0,0.707,0.773,0,0.634,0.707,0,0.707,0.707,0,0.707,0.773,0,0.634,0.773,0,0.634,0.773,0,0.634,0.831,0,0.556,0.773,0,0.634,0.773,0,0.634,0.831,0,0.556,0.831,0,0.556,0.831,0,0.556,0.882,0,0.471,0.831,0,0.556,0.831,0,0.556,0.882,0,0.471,0.882,0,0.471,0.882,0,0.471,0.924,0,0.383,0.882,0,0.471,0.882,0,0.471,0.924,0,0.383,0.924,0,0.383,0.924,0,0.383,0.957,0,0.29,0.924,0,0.383,0.924,0,0.383,0.957,0,0.29,0.957,0,0.29,0.957,0,0.29,0.981,0,0.195,0.957,0,0.29,0.957,0,0.29,0.981,0,0.195,0.981,0,0.195,0.981,0,0.195,0.995,0,0.098,0.981,0,0.195,0.981,0,0.195,0.995,0,0.098,0.995,0,0.098,0.995,0,0.098,1,0,0,0.995,0,0.098,0.995,0,0.098,1,0,0,1,0,0,1,0,0,0.995,0,-0.098,1,0,0,1,0,0,0.995,0,-0.098,0.995,0,-0.098,0.995,0,-0.098,0.981,0,-0.195,0.995,0,-0.098,0.995,0,-0.098,0.981,0,-0.195,0.981,0,-0.195,0.981,0,-0.195,0.957,0,-0.29,0.981,0,-0.195,0.981,0,-0.195,0.957,0,-0.29,0.957,0,-0.29,0.957,0,-0.29,0.924,0,-0.383,0.957,0,-0.29,0.957,0,-0.29,0.924,0,-0.383,0.924,0,-0.383,0.924,0,-0.383,0.882,0,-0.471,0.924,0,-0.383,0.924,0,-0.383,0.882,0,-0.471,0.882,0,-0.471,0.882,0,-0.471,0.831,0,-0.556,0.882,0,-0.471,0.882,0,-0.471,0.831,0,-0.556,0.831,0,-0.556,0.831,0,-0.556,0.773,0,-0.634,0.831,0,-0.556,0.831,0,-0.556,0.773,0,-0.634,0.773,0,-0.634,0.773,0,-0.634,0.707,0,-0.707,0.773,0,-0.634,0.773,0,-0.634,0.707,0,-0.707,0.707,0,-0.707,0.707,0,-0.707,0.634,0,-0.773,0.707,0,-0.707,0.707,0,-0.707,0.634,0,-0.773,0.634,0,-0.773,0.634,0,-0.773,0.556,0,-0.831,0.634,0,-0.773,0.634,0,-0.773,0.556,0,-0.831,0.556,0,-0.831,0.556,0,-0.831,0.471,0,-0.882,0.556,0,-0.831,0.556,0,-0.831,0.471,0,-0.882,0.471,0,-0.882,0.471,0,-0.882,0.383,0,-0.924,0.471,0,-0.882,0.471,0,-0.882,0.383,0,-0.924,0.383,0,-0.924,0.383,0,-0.924,0.29,0,-0.957,0.383,0,-0.924,0.383,0,-0.924,0.29,0,-0.957,0.29,0,-0.957,0.29,0,-0.957,0.195,0,-0.981,0.29,0,-0.957,0.29,0,-0.957,0.195,0,-0.981,0.195,0,-0.981,0.195,0,-0.981,0.098,0,-0.995,0.195,0,-0.981,0.195,0,-0.981,0.098,0,-0.995,0.098,0,-0.995,0.098,0,-0.995,0,0,-1,0.098,0,-0.995,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0.098,0,-0.995,0,0,-1,0,0,-1]},"pock":{"p":[0.09818,0.05,-0.10661,0.06566,0.05,-0.03172,0.10354,0.05,-0.09734,0.09818,0.05,-0.10661,-0.06566,0.05,-0.03172,0.06566,0.05,-0.03172,0.10354,0.05,-0.09734,0.0866,0.05,-0.068,0.10755,0.05,-0.03172,0.14142,0.05,-0.03172,0.10354,0.05,-0.09734,0.10755,0.05,-0.03172,0.10755,0.05,-0.03172,0.10219,0.05,-0.041,0.07101,0.05,-0.041,0.06566,0.05,-0.03172,0.10755,0.05,-0.03172,0.07101,0.05,-0.041,-0.10009,0.05,-0.04464,-0.0866,0.05,-0.068,-0.09872,0.05,-0.089,-0.06431,0.05,-0.10661,-0.09872,0.05,-0.089,-0.0866,0.05,-0.068,-0.06431,0.05,-0.10661,-0.0866,0.05,-0.068,-0.07724,0.05,-0.05178,0.09818,0.05,-0.10661,-0.06431,0.05,-0.10661,-0.07724,0.05,-0.05178,0.09818,0.05,-0.10661,-0.07724,0.05,-0.05178,-0.07293,0.05,-0.04432,0.09818,0.05,-0.10661,-0.07293,0.05,-0.04432,-0.06566,0.05,-0.03172,-0.06431,0.05,-0.10661,-0.09818,0.05,-0.10661,-0.09872,0.05,-0.089,-0.09818,0.05,-0.10661,-0.14142,0.05,-0.03172,-0.10009,0.05,-0.04464,-0.09818,0.05,-0.10661,-0.04324,-0.05,-0.13834,-0.14142,0.05,-0.03172,-0.14142,-0.05,0.03172,-0.14142,0.05,-0.03172,-0.04324,-0.05,-0.13834,-0.14142,-0.05,0.03172,-0.04324,-0.05,-0.13834,0.09818,-0.05,0.10661,-0.09818,-0.05,0.10661,-0.14142,-0.05,0.03172,0.09818,-0.05,0.10661,-0.09818,-0.05,0.10661,0.09818,-0.05,0.10661,-0.04324,0.05,0.13834,0.04324,0.05,0.13834,-0.04324,0.05,0.13834,0.09818,-0.05,0.10661,0.04324,0.05,0.13834,0.09818,-0.05,0.10661,0.14142,0.05,-0.03172,0.04324,0.05,0.13834,0.14142,0.05,-0.03172,0.00623,0.05,0.09278,0.14142,0.05,-0.03172,0.06566,0.05,-0.03172,0.00623,0.05,0.09278,0.06566,0.05,-0.03172,0,0.05,0.082,0.00623,0.05,0.09278,0.06566,0.05,-0.03172,-0.06566,0.05,-0.03172,0,0.05,0.082,-0.02036,0.05,0.11727,0,0.05,0.082,-0.06566,0.05,-0.03172,-0.14142,0.05,-0.03172,-0.02036,0.05,0.11727,-0.06566,0.05,-0.03172,-0.14142,0.05,-0.03172,-0.04324,0.05,0.13834,-0.02036,0.05,0.11727,0.14142,-0.05,0.03172,0.14142,0.05,-0.03172,0.09818,-0.05,0.10661,0.14142,-0.05,0.03172,0.09818,-0.05,0.10661,0.04324,-0.05,-0.13834,0.14142,-0.05,0.03172,0.04324,-0.05,-0.13834,0.14142,0.05,-0.03172,0.09818,0.05,-0.10661,0.14142,0.05,-0.03172,0.04324,-0.05,-0.13834,0.09818,0.05,-0.10661,0.04324,-0.05,-0.13834,-0.04324,-0.05,-0.13834,-0.09818,-0.05,0.10661,-0.04324,0.05,0.13834,-0.14142,-0.05,0.03172,0.04324,-0.05,-0.13834,0.09818,-0.05,0.10661,-0.04324,-0.05,-0.13834,-0.14142,-0.05,0.03172,-0.04324,0.05,0.13834,-0.14142,0.05,-0.03172,-0.09818,0.05,-0.10661,0.09818,0.05,-0.10661,-0.04324,-0.05,-0.13834,-0.10009,0.05,-0.04464,-0.11174,0.05,-0.041,-0.10219,0.05,-0.041,-0.10755,0.05,-0.03172,-0.10219,0.05,-0.041,-0.11174,0.05,-0.041,-0.14142,0.05,-0.03172,-0.10755,0.05,-0.03172,-0.11174,0.05,-0.041,-0.10755,0.05,-0.03172,-0.08206,0.05,-0.041,-0.10219,0.05,-0.041,-0.10755,0.05,-0.03172,-0.06566,0.05,-0.03172,-0.08206,0.05,-0.041,-0.06566,0.05,-0.03172,-0.07101,0.05,-0.041,-0.08206,0.05,-0.041,-0.02036,0.05,0.11727,-0.01138,0.05,0.109,-0.01559,0.05,0.109,0.00623,0.05,0.09278,0.01559,0.05,0.109,0.0194,0.05,0.109,0.03253,0.05,0.13834,0.0194,0.05,0.109,0.01559,0.05,0.109,0.03253,0.05,0.13834,0.01559,0.05,0.109,-0.01138,0.05,0.109,-0.04324,0.05,0.13834,0.03253,0.05,0.13834,-0.01138,0.05,0.109,0.03253,0.05,0.13834,0.04324,0.05,0.13834,0.0194,0.05,0.109,0,0.024,0.082,0,0.05,0.082,-0.01267,0.05,0.10394,0,0.024,0.082,-0.01267,0.05,0.10394,-0.01559,0.024,0.109,-0.01559,0.024,0.109,0,0.024,0.1,0,0.024,0.082,0,0.024,0.082,0,0.024,0.1,0.01559,0.024,0.109,0.01559,0.024,0.109,0.00292,0.05,0.08706,0,0.024,0.082,0.01559,0.024,0.109,0.01559,0.05,0.109,0.00292,0.05,0.08706,0.01559,0.024,0.109,0.00974,0.05,0.109,0.01559,0.05,0.109,-0.01559,0.024,0.109,0.00974,0.05,0.109,0.01559,0.024,0.109,-0.01559,0.024,0.109,-0.01559,0.05,0.109,0.00974,0.05,0.109,0.01559,0.024,0.109,0,0.024,0.1,-0.01559,0.024,0.109,-0.01559,0.024,0.109,-0.01267,0.05,0.10394,-0.01559,0.05,0.109,0,0.024,0.082,0.00292,0.05,0.08706,0,0.05,0.082,-0.10219,0.024,-0.041,-0.09927,0.05,-0.04606,-0.10219,0.05,-0.041,-0.10219,0.024,-0.041,-0.10219,0.05,-0.041,-0.07686,0.05,-0.041,-0.10219,0.024,-0.041,-0.07686,0.05,-0.041,-0.07101,0.024,-0.041,-0.07101,0.024,-0.041,-0.0866,0.024,-0.05,-0.10219,0.024,-0.041,-0.10219,0.024,-0.041,-0.0866,0.024,-0.05,-0.0866,0.024,-0.068,-0.0866,0.024,-0.068,-0.0866,0.024,-0.05,-0.07101,0.024,-0.041,-0.07101,0.024,-0.041,-0.08368,0.05,-0.06294,-0.0866,0.024,-0.068,-0.0866,0.024,-0.068,-0.08368,0.05,-0.06294,-0.0866,0.05,-0.068,-0.0866,0.024,-0.068,-0.0866,0.05,-0.068,-0.09927,0.05,-0.04606,-0.07101,0.024,-0.041,-0.07101,0.05,-0.041,-0.08368,0.05,-0.06294,-0.07101,0.024,-0.041,-0.07686,0.05,-0.041,-0.07101,0.05,-0.041,-0.0866,0.024,-0.068,-0.09927,0.05,-0.04606,-0.10219,0.024,-0.041,0.07101,0.024,-0.041,0.07394,0.05,-0.04606,0.07101,0.05,-0.041,0.0866,0.024,-0.068,0.07394,0.05,-0.04606,0.07101,0.024,-0.041,0.0866,0.024,-0.068,0.0866,0.05,-0.068,0.07394,0.05,-0.04606,0.0866,0.024,-0.068,0.08953,0.05,-0.06294,0.0866,0.05,-0.068,0.10219,0.024,-0.041,0.08953,0.05,-0.06294,0.0866,0.024,-0.068,0.10219,0.024,-0.041,0.10219,0.05,-0.041,0.08953,0.05,-0.06294,0.10219,0.024,-0.041,0.09635,0.05,-0.041,0.10219,0.05,-0.041,0.07101,0.024,-0.041,0.09635,0.05,-0.041,0.10219,0.024,-0.041,0.07101,0.024,-0.041,0.07101,0.05,-0.041,0.09635,0.05,-0.041,0.10219,0.024,-0.041,0.0866,0.024,-0.05,0.07101,0.024,-0.041,0.0866,0.024,-0.068,0.0866,0.024,-0.05,0.10219,0.024,-0.041,0.07101,0.024,-0.041,0.0866,0.024,-0.05,0.0866,0.024,-0.068],"n":[0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,-0.825,-0.302,-0.477,-0.825,-0.302,-0.477,-0.825,-0.302,-0.477,-0.825,-0.302,-0.477,-0.825,-0.302,-0.477,-0.825,-0.302,-0.477,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-0.302,0.953,0,-0.302,0.953,0,-0.302,0.953,0,-0.302,0.953,0,-0.302,0.953,0,-0.302,0.953,0.825,0.302,0.477,0.825,0.302,0.477,0.825,0.302,0.477,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0.825,0.302,0.477,0.825,0.302,0.477,0.825,0.302,0.477,0,-1,0,0,-1,0,0,-1,0,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,-0.825,0.302,0.477,-0.825,0.302,0.477,-0.825,0.302,0.477,0,-1,0,0,-1,0,0,-1,0,-0.825,0.302,0.477,-0.825,0.302,0.477,-0.825,0.302,0.477,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,1,0,0,1,0.955,0,-0.297,0,0,1,0.955,0,-0.297,0.866,0,-0.5,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,-0.866,0,-0.5,-0.22,0,0.975,0,0,1,-0.866,0,-0.5,-0.866,0,-0.5,-0.22,0,0.975,-0.866,0,-0.5,-0.735,0,-0.679,-0.866,0,-0.5,0.866,0,-0.5,-0.735,0,-0.679,-0.866,0,-0.5,0.866,0,-0.5,0.866,0,-0.5,-0.735,0,-0.679,0,1,0,0,1,0,0,1,0,0.866,0,-0.5,0.955,0,-0.297,0.866,0,-0.5,0,0,1,-0.22,0,0.975,0,0,1,0.866,0,-0.5,0.955,0,-0.297,0.866,0,-0.5,0.866,0,-0.5,0.866,0,-0.5,-0.735,0,-0.679,0.866,0,-0.5,-0.735,0,-0.679,-0.866,0,-0.5,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,-0.866,0,-0.5,-0.22,0,0.975,0,0,1,0,0,1,-0.22,0,0.975,0,0,1,0,0,1,0,0,1,0.955,0,-0.297,-0.866,0,-0.5,-0.866,0,-0.5,-0.22,0,0.975,-0.866,0,-0.5,-0.735,0,-0.679,-0.866,0,-0.5,0,0,1,0.955,0,-0.297,0.866,0,-0.5,0.866,0,-0.5,0.704,0,-0.219,0.866,0,-0.5,0,0,1,0.704,0,-0.219,0.866,0,-0.5,0,0,1,0,0,1,0.704,0,-0.219,0,0,1,-0.162,0,0.719,0,0,1,-0.866,0,-0.5,-0.162,0,0.719,0,0,1,-0.866,0,-0.5,-0.866,0,-0.5,-0.162,0,0.719,-0.866,0,-0.5,-0.541,0,-0.5,-0.866,0,-0.5,0.866,0,-0.5,-0.541,0,-0.5,-0.866,0,-0.5,0.866,0,-0.5,0.866,0,-0.5,-0.541,0,-0.5,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0]},"hand":{"p":[-0.035,-0.04417,-0.13649,-0.035,-0.02669,-0.13094,-0.01027,-0.02669,-0.13094,-0.035,0.05,-0.10661,-0.035,0.02669,-0.11401,-0.03692,0.02669,-0.11401,-0.04324,-0.05,-0.13834,-0.09818,0.05,-0.10661,-0.035,0.05,-0.10661,-0.035,0.05,-0.10661,-0.02748,0.02669,-0.11401,-0.035,0.02669,-0.11401,0.06522,0.02669,-0.11401,0.035,0.00532,-0.12079,0.035,0.02669,-0.11401,-0.035,-0.04417,-0.13649,-0.04132,-0.02669,-0.13094,-0.035,-0.02669,-0.13094,-0.035,-0.04417,-0.13649,-0.04324,-0.05,-0.13834,-0.04132,-0.02669,-0.13094,-0.035,-0.02669,-0.13094,-0.03692,0.02669,-0.11401,-0.035,0.02669,-0.11401,-0.035,-0.02669,-0.13094,-0.04132,-0.02669,-0.13094,-0.03692,0.02669,-0.11401,0.06522,0.02669,-0.11401,0.035,0.02669,-0.11401,0.035,0.03372,-0.11178,-0.035,0.05,-0.10661,0.09818,0.05,-0.10661,0.06522,0.02669,-0.11401,-0.02748,0.02669,-0.11401,0.035,0.03372,-0.11178,0.035,0.02669,-0.11401,-0.02748,0.02669,-0.11401,-0.035,0.05,-0.10661,0.035,0.03372,-0.11178,-0.01027,-0.02669,-0.13094,0.035,-0.02669,-0.13094,0.035,-0.04641,-0.1372,0.04324,-0.05,-0.13834,-0.04324,-0.05,-0.13834,-0.01027,-0.02669,-0.13094,0.05605,-0.02669,-0.13094,0.035,-0.02669,-0.13094,0.035,0.00532,-0.12079,0.09818,0.05,-0.10661,0.05605,-0.02669,-0.13094,0.035,0.00532,-0.12079,0.04324,-0.05,-0.13834,0.035,-0.04641,-0.1372,0.035,-0.02669,-0.13094,0.05605,-0.02669,-0.13094,0.04324,-0.05,-0.13834,0.035,-0.02669,-0.13094,-0.04324,0.05,0.13834,0.14142,0.05,-0.03172,-0.14142,0.05,-0.03172,-0.14142,-0.05,0.03172,-0.04324,0.05,0.13834,-0.14142,0.05,-0.03172,-0.14142,-0.05,0.03172,-0.14142,0.05,-0.03172,-0.04324,-0.05,-0.13834,-0.14142,-0.05,0.03172,-0.04324,-0.05,-0.13834,0.09818,-0.05,0.10661,-0.09818,-0.05,0.10661,-0.14142,-0.05,0.03172,0.09818,-0.05,0.10661,-0.09818,-0.05,0.10661,0.09818,-0.05,0.10661,-0.04324,0.05,0.13834,0.04324,0.05,0.13834,-0.04324,0.05,0.13834,0.09818,-0.05,0.10661,0.04324,0.05,0.13834,0.09818,-0.05,0.10661,0.14142,0.05,-0.03172,0.14142,-0.05,0.03172,0.14142,0.05,-0.03172,0.09818,-0.05,0.10661,0.14142,-0.05,0.03172,0.09818,-0.05,0.10661,0.04324,-0.05,-0.13834,0.14142,-0.05,0.03172,0.04324,-0.05,-0.13834,0.14142,0.05,-0.03172,0.09818,0.05,-0.10661,0.14142,0.05,-0.03172,0.04324,-0.05,-0.13834,0.04324,-0.05,-0.13834,0.09818,-0.05,0.10661,-0.04324,-0.05,-0.13834,-0.09818,0.05,-0.10661,-0.04324,-0.05,-0.13834,-0.14142,0.05,-0.03172,-0.09818,0.05,-0.10661,-0.14142,0.05,-0.03172,0.09818,0.05,-0.10661,-0.09818,-0.05,0.10661,-0.04324,0.05,0.13834,-0.14142,-0.05,0.03172,0.09818,0.05,-0.10661,-0.14142,0.05,-0.03172,0.14142,0.05,-0.03172,0.04324,0.05,0.13834,0.14142,0.05,-0.03172,-0.04324,0.05,0.13834,-0.035,-0.03757,-0.09663,-0.035,-0.02669,-0.13094,-0.035,-0.01906,-0.12852,-0.035,-0.03757,-0.09663,-0.035,-0.01906,-0.12852,-0.035,0.0158,-0.07969,-0.035,0.0158,-0.07969,-0.035,-0.01906,-0.12852,-0.035,0.02669,-0.11401,0.035,-0.03757,-0.09663,0.035,-0.02669,-0.13094,0.025,-0.02669,-0.13094,0.035,-0.03757,-0.09663,0.025,-0.02669,-0.13094,-0.035,-0.03757,-0.09663,-0.035,-0.03757,-0.09663,0.025,-0.02669,-0.13094,-0.035,-0.02669,-0.13094,-0.035,0.0158,-0.07969,-0.035,0.02669,-0.11401,-0.025,0.02669,-0.11401,-0.035,0.0158,-0.07969,-0.025,0.02669,-0.11401,0.035,0.0158,-0.07969,0.035,0.0158,-0.07969,-0.025,0.02669,-0.11401,0.035,0.02669,-0.11401,0.035,-0.03757,-0.09663,0.035,0.01906,-0.11643,0.035,-0.02669,-0.13094,0.035,0.0158,-0.07969,0.035,0.02669,-0.11401,0.035,0.01906,-0.11643,0.035,0.0158,-0.07969,0.035,0.01906,-0.11643,0.035,-0.03757,-0.09663,-0.035,0.0158,-0.07969,0.035,0.0158,-0.07969,-0.035,-0.03757,-0.09663,-0.035,-0.03757,-0.09663,0.035,0.0158,-0.07969,0.035,-0.03757,-0.09663],"n":[0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,1,0,0,1,0,0,1,0,-0.825,0.302,0.477,-0.825,0.302,0.477,-0.825,0.302,0.477,-0.825,-0.302,-0.477,-0.825,-0.302,-0.477,-0.825,-0.302,-0.477,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-0.302,0.953,0,-0.302,0.953,0,-0.302,0.953,0,-0.302,0.953,0,-0.302,0.953,0,-0.302,0.953,0.825,0.302,0.477,0.825,0.302,0.477,0.825,0.302,0.477,0.825,0.302,0.477,0.825,0.302,0.477,0.825,0.302,0.477,0,-1,0,0,-1,0,0,-1,0,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0.825,-0.302,-0.477,0,-1,0,0,-1,0,0,-1,0,-0.825,-0.302,-0.477,-0.825,-0.302,-0.477,-0.825,-0.302,-0.477,0,1,0,0,1,0,0,1,0,-0.825,0.302,0.477,-0.825,0.302,0.477,-0.825,0.302,0.477,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,1,0,0,0,0.953,0.302,0,0.953,0.302,0,0.953,0.302,0,0.953,0.302,0,0.953,0.302,0,0.953,0.302,0,0.953,0.302,0,0.953,0.302,0,0.953,0.302,0,-0.953,-0.302,0,-0.953,-0.302,0,-0.953,-0.302,0,-0.953,-0.302,0,-0.953,-0.302,0,-0.953,-0.302,0,-0.953,-0.302,0,-0.953,-0.302,0,-0.953,-0.302,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,-1,0,0,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953,0,0.302,-0.953]}};
+  function mkGeo(o){ var g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(o.p,3)); g.setAttribute('normal',new THREE.Float32BufferAttribute(o.n,3)); return g; }
+  var GEOS={plain:bg, slot:mkGeo(BG.slot), pock:mkGeo(BG.pock), hand:mkGeo(BG.hand)};
+  var fEdgeM=new THREE.LineBasicMaterial({color:0x0B0F16,transparent:true,opacity:0.75});
+  function edgesOf(geom,grp){ var l=new THREE.LineSegments(new THREE.EdgesGeometry(geom,20),fEdgeM); grp.add(l); return l; }
+  var FE={slot:new THREE.Group(), pock:new THREE.Group(), hand:new THREE.Group()}; Object.keys(FE).forEach(function(k){ FE[k].visible=false; pick.add(FE[k]); });
+  // twist-lock: a rectangular slot through a 12 mm lip into a round cavity; the key passes the slot, turns 90° and bears up under the lip
+  var SLOT={w:0.084,d:0.026,open:0.012,cav:0.034,cavR:0.05};
+  (function(){ var g1=new THREE.BoxGeometry(SLOT.w,SLOT.open,SLOT.d); g1.translate(0,TOP-SLOT.open/2,0); edgesOf(g1,FE.slot); var g2=new THREE.CylinderGeometry(SLOT.cavR,SLOT.cavR,SLOT.cav,64); g2.translate(0,TOP-SLOT.open-SLOT.cav/2,0); edgesOf(g2,FE.slot); })();
+  // corner pockets: three triangular seats, 26 mm deep, at the three short top edges; flat wall outward, 20 mm of material to the face
+  var POCK={R:0.018,D:0.026,r:0.1,angs:[Math.PI/2,Math.PI/2+2*Math.PI/3,Math.PI/2+4*Math.PI/3]};
+  POCK.angs.forEach(function(a){ var g=new THREE.CylinderGeometry(POCK.R,POCK.R,POCK.D,3); g.rotateY(-a-Math.PI/2); g.translate(Math.cos(a)*POCK.r,TOP-POCK.D/2,Math.sin(a)*POCK.r); edgesOf(g,FE.pock); });
+  // ferrous insert for the magnet plate
+  var insert=new THREE.Mesh(new THREE.CylinderGeometry(RC*0.55,RC*0.55,0.003,6),new THREE.MeshStandardMaterial({color:0x5a6472,metalness:0.6,roughness:0.5})); insert.position.y=TOP+0.0016; insert.visible=false; pick.add(insert);
+  // flush side handle: a 70 x 56 mm pocket, 36 mm deep, centred on one inward-leaning side face, with a 12 mm steel bar across it 22 mm in
+  var HA=Math.PI/6+4*Math.PI/3, TT=TH*Math.PI/180, FD=AF*Math.cos(TT), HP={w:0.07,h:0.056,depth:0.036,bar:0.012,barIn:0.022};
+  var NRM=new THREE.Vector3(Math.cos(TT)*Math.cos(HA),Math.sin(TT),Math.cos(TT)*Math.sin(HA)), MID=new THREE.Vector3(AF*Math.cos(HA),0,AF*Math.sin(HA));
+  function onFace(o){ return MID.clone().addScaledVector(NRM,o); } // o = distance out from the face, along its normal
+  var handle=new THREE.Group(); handle.position.copy(MID); handle.rotation.set(0,-HA,TT); FE.hand.add(handle);
+  (function(){ var g=new THREE.BoxGeometry(HP.depth,HP.h,HP.w); g.translate(-HP.depth/2,0,0); edgesOf(g,handle); })();
+  var barM=new THREE.MeshStandardMaterial({color:0x9aa1ab,metalness:0.7,roughness:0.4});
+  (function(){ var m=new THREE.Mesh(new THREE.CylinderGeometry(HP.bar/2,HP.bar/2,HP.w+0.004,24),barM); m.rotation.x=Math.PI/2; m.position.x=-HP.barIn; m.castShadow=true; handle.add(m); })();
+
+  // ---- effector parts: brushed steel bodies, dark anodised moving parts, rubber pads
+  var steel=new THREE.MeshStandardMaterial({color:0xcfd3d9,roughness:0.35,metalness:0.75}), dark=new THREE.MeshStandardMaterial({color:0x2e3440,roughness:0.5,metalness:0.5}), rub=new THREE.MeshStandardMaterial({color:0x15181d,roughness:0.95}), accent=new THREE.MeshStandardMaterial({color:0xE88A6F,roughness:0.6,metalness:0.2});
+  function cyl(r,h,m,x,y,z,g,seg){ var c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg||32),m); c.position.set(x,y,z); c.castShadow=true; g.add(c); return c; }
+  function box(w,h,d,m,x,y,z,g){ var b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); b.position.set(x,y,z); b.castShadow=true; g.add(b); return b; }
+  // wrist: ISO flange with bolt ring, collar, shaft; hangs down to local y=0
+  function wrist(g,h){ cyl(0.052,0.014,steel,0,h+0.007,0,g); for(var k=0;k<8;k++){ var a=k*Math.PI/4; cyl(0.0035,0.018,dark,Math.cos(a)*0.042,h+0.009,Math.sin(a)*0.042,g,8); } cyl(0.034,0.018,dark,0,h-0.009,0,g); cyl(0.022,h-0.018,steel,0,(h-0.018)/2,0,g); cyl(0.004,0.006,accent,0.026,h-0.009,0,g,8); }
+  var E={};
+  // A twist-key: wrist → bearing collar → stem → T-key with chamfered ends. datum (local 0) = key centre
+  (function(){ var g=new THREE.Group(); wrist(g,0.07); cyl(0.02,0.012,dark,0,0.064,0,g); cyl(0.013,0.06,steel,0,0.03,0,g); var key=new THREE.Group(); box(SLOT.w-0.008,0.01,SLOT.d-0.008,dark,0,0,0,key); cyl(0.014,0.014,dark,0,0.009,0,key,16); g.add(key); g.userData={key:key}; E.twist=g; sc.add(g); })();
+  // B C-jaw: wrist along +x (outward), gearbox body, two parallel jaw plates on vertical guide rods, rubber pads at the tips (local x≈-0.03)
+  (function(){ var g=new THREE.Group();
+    cyl(0.052,0.014,steel,0.24,0,0,g).rotation.z=Math.PI/2; for(var k=0;k<8;k++){ var a=k*Math.PI/4; var b=cyl(0.0035,0.018,dark,0.242,Math.cos(a)*0.042,Math.sin(a)*0.042,g,8); b.rotation.z=Math.PI/2; }
+    cyl(0.022,0.05,steel,0.21,0,0,g).rotation.z=Math.PI/2; box(0.1,0.09,0.1,steel,0.135,0,0,g); box(0.06,0.11,0.06,dark,0.07,0,0,g);
+    [1,-1].forEach(function(sg){ cyl(0.005,0.11,steel,0.055,0,sg*0.02,g,12); });
+    var jA=new THREE.Group(), jB=new THREE.Group(); [jA,jB].forEach(function(j){ box(0.09,0.01,0.06,dark,0.01,0,0,j); box(0.02,0.012,0.056,rub,-0.03,0,0,j); g.add(j); });
+    g.userData={jaws:[jA,jB]}; E.cjaw=g; sc.add(g); })();
+  // C three-finger pocket grip: hex hub, three radial dovetail rails, carriers, triangular fingers
+  (function(){ var g=new THREE.Group(); wrist(g,0.07); var hub=cyl(0.07,0.02,steel,0,-0.01,0,g,6); hub.rotation.y=Math.PI/6;
+    for(var k=0;k<3;k++){ var a=POCK.angs[k]; var r=box(0.15,0.008,0.016,dark,Math.cos(a)*0.075,-0.024,Math.sin(a)*0.075,g); r.rotation.y=-a; }
+    var fs=[]; for(k=0;k<3;k++){ var a2=POCK.angs[k]; var f=new THREE.Group(); box(0.032,0.024,0.026,dark,0,-0.03,0,f); var fin=cyl(0.009,0.062,steel,0,-0.071,0,f,3); fin.rotation.y=-Math.PI/2; f.userData.a=a2; f.rotation.y=-a2; g.add(f); fs.push(f); }
+    g.userData={fingers:fs}; E.three=g; sc.add(g); })();
+  // D magnet plate: hex plate matched to the top face, coil ring, six contact pads
+  (function(){ var g=new THREE.Group(); wrist(g,0.07); var plate=cyl(RC*0.82,0.018,dark,0,-0.009,0,g,6); plate.rotation.y=Math.PI/6; cyl(RC*0.5,0.004,steel,0,-0.019,0,g,32);
+    for(var k=0;k<6;k++){ var a=Math.PI/6+k*Math.PI/3; cyl(0.007,0.004,rub,Math.cos(a)*RC*0.62,-0.02,Math.sin(a)*RC*0.62,g,12); }
+    var coil=new THREE.Mesh(new THREE.TorusGeometry(RC*0.5,0.006,8,48),new THREE.MeshStandardMaterial({color:0x7C9CF2,emissive:0x2a3a80,emissiveIntensity:0})); coil.rotation.x=Math.PI/2; coil.position.y=-0.0185; g.add(coil); g.userData={coil:coil}; E.mag=g; sc.add(g); })();
+  // E three-finger side grip: hub with three radial rails; on each, a carrier with a hanging finger whose rubber pad faces the block
+  (function(){ var g=new THREE.Group(); wrist(g,0.07); var hub=cyl(0.075,0.02,steel,0,-0.01,0,g,6); hub.rotation.y=Math.PI/6;
+    var fs=[]; for(var k=0;k<3;k++){ var a=Math.PI/6+k*2*Math.PI/3; var rail=box(0.2,0.008,0.016,dark,Math.cos(a)*0.1,-0.024,Math.sin(a)*0.1,g); rail.rotation.y=-a;
+      var f=new THREE.Group(); box(0.03,0.024,0.028,dark,0,-0.03,0,f); var fin=new THREE.Group(); box(0.014,0.13,0.044,dark,0,-0.065,0,fin); box(0.005,0.1,0.038,rub,-0.0095,-0.075,0,fin); fin.position.y=-0.042; fin.rotation.z=TH*Math.PI/180; f.add(fin); f.userData.a=a; f.rotation.y=-a; g.add(f); fs.push(f); }
+    g.userData={fingers:fs}; E.side=g; sc.add(g); })();
+  var OPTS=[
+    {k:'twist',n:'Option 1 · top twist-lock',t:'TOP TWIST-LOCK',h:'Key into the top slot, turn 90°',p:'A slot is printed into the flat top over a round cavity. The T-key drops through the slot, turns 90° inside the cavity and bears up under the slot lip: a form lock, no friction needed. The same key fits every block in the family because the top is the same on all five tilts.',kv:[['Approach','vertical'],['Actuation','wrist turn 90°'],['Block feature','slot + cavity'],['Hold','form lock']],c:'#E8674F'},
+    {k:'cjaw',n:'Option 2 · lab-compatible',t:'FLUSH SIDE HANDLE + C-JAW',h:'Flush side handle + C-jaw',p:'Report 01’s baseline on the new block: a 12 mm steel bar across a 70 × 56 mm pocket in one side face, so nothing sticks out of the block. The lab’s existing C-jaw approaches square to that face, reaches into the pocket and closes on the bar from above and below. One face must be free; the other five can be in contact.',kv:[['Approach','horizontal'],['Actuation','jaw closes'],['Block feature','recessed handle'],['Hardware','existing']],c:'#7C9CF2'},
+    {k:'three',n:'Option 3 · top pocket grip',t:'THREE-FINGER POCKET GRIP',h:'Three fingers into printed top pockets',p:'Three triangular pockets are printed into the flat top, one at each short edge. Three fingers on radial slides drop in from above and spread outward until their flat sides bear on the outer pocket walls; the hold is symmetric, so the block hangs level, and the pockets are the same on every tilt.',kv:[['Approach','vertical'],['Actuation','fingers spread'],['Block feature','3 top pockets'],['Hold','form + friction']],c:'#35A882'},
+    {k:'mag',n:'Option 4 · magnetic top plate',t:'MAGNETIC TOP PLATE',h:'Electromagnet on the flat top',p:'No vacuum on the Moon, so no suction. A hexagonal plate with an electromagnet seats on the flat top; the block carries a thin ferrous insert under its top face, printed in. Fastest cycle, lowest precision needed, and the plate doubles as the pocket-magnet charger.',kv:[['Approach','vertical'],['Actuation','coil on'],['Block feature','ferrous insert'],['Hold','magnetic']],c:'#E9C46A'},
+    {k:'side',n:'Option 5 · three-finger side grip',t:'THREE-FINGER SIDE GRIP',h:'Self-centring on alternating faces',p:'Three fingers from above, landing on the three faces that tilt inward. Because those faces lean the same way on every block, the fingers centre the block as they close. Needs the neighbouring cells empty on three sides, so it suits placing, not retrieving from a finished course.',kv:[['Approach','vertical'],['Actuation','fingers close'],['Block feature','none'],['Hold','wedge + friction']],c:'#D39672'}];
+  var opts=$('eeOpts'); OPTS.forEach(function(o,i){ var d=document.createElement('div'); d.className='eeopt'+(i===0?' on':''); d.innerHTML='<div class="k" style="color:'+o.c+'">'+o.n+'</div><h3>'+o.h+'</h3><p>'+o.p+'</p><div class="kv">'+o.kv.map(function(x){return '<span>'+x[0]+' <b>'+x[1]+'</b></span>'}).join('')+'</div>'; d.addEventListener('click',function(){ setOpt(i); }); opts.appendChild(d); });
+  var cur=0, step=0, t=0, playing=false, az=3.9, el=0.5, dist=1.05, drag=null, camEl=0.5, camAz=3.9, zf=1, zc=1, ptrs={}, pinch=null, tgt=new THREE.Vector3(0,0.08,0), tgtW=new THREE.Vector3(0,0.08,0);
+  function setZf(z){ zf=Math.max(0.3,Math.min(1.8,z)); }
+  function setOpt(i){ cur=i; step=0; t=0; [].slice.call(opts.children).forEach(function(c,k){ c.classList.toggle('on',k===i); }); $('eeTag').textContent='OPTION '+(i+1)+' · '+OPTS[i].t; var kk=OPTS[i].k;
+    var gk=(kk==='twist'?'slot':kk==='cjaw'?'hand':kk==='three'?'pock':'plain'); pm.geometry=GEOS[gk]; Object.keys(FE).forEach(function(k){ FE[k].visible=(k===gk); });
+    var tr=(kk==='twist'); pickM.transparent=tr; pickM.opacity=tr?0.7:1; pickM.depthWrite=!tr; pickM.needsUpdate=true;
+    camEl=(kk==='twist'?0.9:kk==='cjaw'?0.5:kk==='three'?0.85:kk==='side'?0.32:0.5); camAz=(kk==='cjaw'?HA+1.15:3.9); zf=1; if(kk==='cjaw'){ var fp=onFace(0.06); tgtW.set(fp.x,0.07,fp.z); } else tgtW.set(0,0.08,0);
+    insert.visible=(kk==='mag');
+    placeGhosts(kk==='side'?[Math.PI/2,Math.PI*11/6]:kk==='cjaw'?[Math.PI/2,Math.PI/6]:[Math.PI*5/6,Math.PI*11/6]); if(!drag){ az=camAz; el=camEl; } setStepBtn(); }
+  function setStepBtn(){ [].slice.call($('eeSteps').children).forEach(function(b){ b.setAttribute('aria-pressed',parseInt(b.dataset.k,10)===step); }); $('eeStep').textContent=(step+1)+' · '+['APPROACH','ENGAGE','ACTUATE','LIFT'][step]; }
+  $('eeSteps').addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; step=parseInt(b.dataset.k,10); t=0; playing=false; $('eePlay').textContent='▶ Play'; setStepBtn(); });
+  $('eePlay').addEventListener('click',function(){ playing=!playing; this.textContent=playing?'❚❚ Pause':'▶ Play'; if(playing){ step=0; t=0; setStepBtn(); } });
+  function pdist(){ var k=Object.keys(ptrs); if(k.length<2) return 1; var a=ptrs[k[0]],b=ptrs[k[1]]; return Math.hypot(a[0]-b[0],a[1]-b[1])||1; }
+  cv.addEventListener('pointerdown',function(e){ ptrs[e.pointerId]=[e.clientX,e.clientY]; cv.setPointerCapture(e.pointerId); if(Object.keys(ptrs).length===2){ pinch=[pdist(),zf]; drag=null; } else drag=[e.clientX,e.clientY,az,el]; });
+  cv.addEventListener('pointermove',function(e){ if(ptrs[e.pointerId]) ptrs[e.pointerId]=[e.clientX,e.clientY]; if(pinch&&Object.keys(ptrs).length===2){ setZf(pinch[1]*pinch[0]/pdist()); return; } if(!drag) return; az=drag[2]+(e.clientX-drag[0])*0.008; el=Math.max(0.1,Math.min(1.3,drag[3]-(e.clientY-drag[1])*0.006)); });
+  function up(e){ delete ptrs[e.pointerId]; pinch=null; if(!Object.keys(ptrs).length) drag=null; } cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up); cv.style.touchAction='none'; cv.style.cursor='grab';
+  cv.addEventListener('wheel',function(e){ if(e.ctrlKey||e.metaKey){ e.preventDefault(); setZf(zf*Math.exp(e.deltaY*0.01)); } },{passive:false});
+  $('eeZin').addEventListener('click',function(){ setZf(zf/1.3); }); $('eeZout').addEventListener('click',function(){ setZf(zf*1.3); }); cv.addEventListener('dblclick',function(){ setZf(zf/1.5); });
+  function lerp(a,b,u){ return a+(b-a)*u; } function ease(u){ return u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2; }
+  var lift=0.12, FAR=H+0.3;
+  function datum(st,e,seat){ return st===0?lerp(FAR,seat+0.05,e):st===1?lerp(seat+0.05,seat,e):seat; }
+  function pose(kk,g,st,u){ var e=ease(u); g.visible=(kk===OPTS[cur].k); if(!g.visible) return; var y=st===3?lerp(0,lift,e):0; pick.position.y=BC+y; g.rotation.y=0; g.position.x=g.position.z=0;
+    if(kk==='twist'){ // key centre seats in the cavity, below the slot; actuate = turn 90°; lift = rise until the key bears on the lip
+      var seat=H-SLOT.open-SLOT.cav/2; var yy=datum(st,e,seat); if(st===3) yy=seat+SLOT.cav/2-0.009; g.position.y=yy+y; g.rotation.y=st>=2?(st===2?lerp(0,Math.PI/2,e):Math.PI/2):0; }
+    if(kk==='cjaw'){ // approach along the face normal; jaw tips (local x=-0.03) reach the bar inside the pocket; jaws close on the bar
+      var seatO=0.03-HP.barIn; var oo=st===0?lerp(0.48,0.08,e):st===1?lerp(0.08,seatO,e):seatO; var opn=0.019, cls=HP.bar/2+0.006; var op=st<=1?opn:st===2?lerp(opn,cls,e):cls;
+      g.rotation.set(0,-HA,TT); g.position.copy(onFace(oo)); g.position.y+=BC+y; g.userData.jaws[0].position.y=op; g.userData.jaws[1].position.y=-op; }
+    if(kk==='three'){ var seat3=H-POCK.D+0.004+0.102; g.position.y=datum(st,e,seat3)+y; var r0=POCK.r, r1=POCK.r+POCK.R/2-0.009/2-0.0002; var r=st<=1?r0:st===2?lerp(r0,r1,e):r1; g.userData.fingers.forEach(function(f){ f.position.x=Math.cos(f.userData.a)*r; f.position.z=Math.sin(f.userData.a)*r; }); }
+    if(kk==='mag'){ var seat4=H+0.022; g.position.y=datum(st,e,seat4)+y; g.userData.coil.material.emissiveIntensity=st>=2?1.2:0; }
+    if(kk==='side'){ // pad centre at block mid-height; pad inner face at AF (the face) when closed
+      var seat5=BC+0.1164; g.position.y=datum(st,e,seat5)+y; var stop=AF-0.0112+0.0008; var rr=st<=1?AF+0.07:st===2?lerp(AF+0.07,stop,e):stop;
+      g.userData.fingers.forEach(function(f){ f.position.x=Math.cos(f.userData.a)*rr; f.position.z=Math.sin(f.userData.a)*rr; }); }
+  }
+  function size(){ var w=cv.clientWidth,h=cv.clientHeight; if(cv.width!==w*R.getPixelRatio()|0||cv.height!==h*R.getPixelRatio()|0){ R.setSize(w,h,false); cam.aspect=w/h; cam.updateProjectionMatrix(); } }
+  var last=performance.now();
+  function frame(now){ var dt=(now-last)/1000; last=now; var r=cv.getBoundingClientRect(); if(r.bottom>0&&r.top<innerHeight){ size();
+      if(playing){ t+=dt/1.4; if(t>=1){ t=0; step=(step+1)%4; setStepBtn(); } } else { t=1; }
+      Object.keys(E).forEach(function(kk){ pose(kk,E[kk],step,playing?t:1); });
+      zc+=(zf-zc)*0.15; tgt.lerp(tgtW,0.12); var dd=dist*zc; cam.position.set(tgt.x+Math.cos(az)*Math.cos(el)*dd, tgt.y+Math.sin(el)*dd, tgt.z+Math.sin(az)*Math.cos(el)*dd); cam.lookAt(tgt); R.render(sc,cam); }
+    requestAnimationFrame(frame); }
+  setOpt(0); requestAnimationFrame(frame);
+})(); }
+
+/* ---------- scroll loop ---------- */
+var navLinks=[].slice.call(document.querySelectorAll('.nav a[href^="#"]'));
+function update(){
+  var vh=innerHeight;
+  stages.forEach(function(s){ var r=s.getBoundingClientRect(); var vis=r.bottom>0&&r.top<vh; if(!vis) return; var p=prog(s);
+    var m=s.querySelector('.meter i'); if(m) m.style.width=(p*100)+'%';
+    if(s.dataset.stage==='block'&&blk) blk.render(p);
+    else { var sq=seqs.find(function(x){return x.sec===s}); if(sq){ var n=sq.caps.length; sq.set(Math.min(n-1,Math.floor(p*n))); } } });
+  var cur=null; document.querySelectorAll('section[id],header[id],div.story').forEach(function(sec){ if(sec.getBoundingClientRect().top<=vh*0.5) cur=sec.id; });
+  navLinks.forEach(function(a){ a.classList.toggle('on',a.getAttribute('href')==='#'+cur); });
+}
+var raf=false; function onScroll(){ if(!raf){ raf=true; requestAnimationFrame(function(){ update(); raf=false; }); } }
+addEventListener('scroll',onScroll,{passive:true}); addEventListener('resize',onScroll);
+// keep the 3D stages animating while they are on screen
+(function loop(){ update(); requestAnimationFrame(loop); })();
+// presenter keys
+var stops=[].slice.call(document.querySelectorAll('.stage, .sec, header'));
+addEventListener('keydown',function(e){ if(e.target.matches('input,textarea,button')) return;
+  if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){ e.preventDefault(); scrollBy({top:innerHeight*0.9,behavior:reduce?'auto':'smooth'}); }
+  else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){ e.preventDefault(); scrollBy({top:-innerHeight*0.9,behavior:reduce?'auto':'smooth'}); }
+  else if(e.key==='Escape') scrollTo({top:0,behavior:'smooth'}); });
+})();
+</script>
+</body>
+</html>
